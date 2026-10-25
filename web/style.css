@@ -1,0 +1,69 @@
+/* Orchestrion's palette (orchestrion.app), light and dark. */
+:root {
+  --espresso: #2e1a12;
+  --espresso-warm: #3a2318;
+  --gold: #b9863e;
+  --gold-bright: #d6a85c;
+  --cream: #f7f1e3;
+  --bg: var(--cream);
+  --fg: var(--espresso);
+  --muted: #6b5246;
+  --card: #fffaf0;
+  --line: #e2d5bd;
+  --link: #8a5a1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--espresso-warm);
+    --fg: var(--cream);
+    --muted: #c9b8a3;
+    --card: var(--espresso);
+    --line: #5a3d2e;
+    --link: var(--gold-bright);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  line-height: 1.6;
+}
+a { color: var(--link); }
+header.site, main, footer.site { max-width: 52rem; margin: 0 auto; padding: 0 16px; }
+header.site {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem;
+  padding-top: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line);
+}
+.brand { font-size: 1.6rem; font-weight: bold; color: var(--fg); text-decoration: none; }
+.tagline { color: var(--muted); }
+main { padding-top: 1.5rem; padding-bottom: 2rem; }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
+.lead { color: var(--muted); max-width: 40rem; }
+#search {
+  width: 100%; margin: 1rem 0; padding: 0.6rem 0.8rem; font: inherit;
+  color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+}
+.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+.card a {
+  display: block; height: 100%; padding: 0.9rem 1rem; text-decoration: none; color: var(--fg);
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+}
+.card a:hover { border-color: var(--gold); }
+.card .title { display: block; font-weight: bold; }
+.card .composer { display: block; color: var(--muted); font-size: 0.95rem; }
+.crumb { margin: 0 0 1rem; }
+.score .composer { font-size: 1.15rem; margin: 0; }
+.facts, .hint { color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 0.5rem; }
+.button {
+  display: inline-block; padding: 0.6rem 1.1rem; border-radius: 6px; text-decoration: none;
+  border: 1px solid var(--gold); color: var(--fg);
+}
+.button.primary { background: var(--gold); color: var(--espresso); font-weight: bold; }
+.button.primary:hover { background: var(--gold-bright); }
+.credits { padding-left: 1.2rem; margin-top: 1.5rem; }
+footer.site { border-top: 1px solid var(--line); padding-top: 1rem; padding-bottom: 2rem;
+  color: var(--muted); font-size: 0.9rem; }

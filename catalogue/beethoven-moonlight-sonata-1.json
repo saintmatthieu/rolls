@@ -1,0 +1,22 @@
+{
+  "title": "Piano Sonata No. 14 “Moonlight”: I. Adagio sostenuto",
+  "composer": "Ludwig van Beethoven",
+  "opus": "Op. 27 No. 2",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 276,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BeethovenLv/O27/moonlight/moonlight-lys/moonlight1-a4.ly",
+    "edition": "Berners, 1908 (edited by A. Winterberger)"
+  },
+  "license": {
+    "name": "CC BY-SA 2.5",
+    "url": "https://creativecommons.org/licenses/by-sa/2.5/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Stewart Holmes"}
+  ],
+  "lilyport": {"tempo": "4=54"}
+}

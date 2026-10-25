@@ -1,0 +1,21 @@
+{
+  "title": "Nocturne in E-flat major",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 9 No. 2",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1590,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O9/chopin_nocturne_op9_n2/chopin_nocturne_op9_n2.ly",
+    "edition": "G. Schirmer, New York, 1881"
+  },
+  "license": {
+    "name": "CC BY-SA 3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Renato Biolcati Rinaldi"}
+  ]
+}

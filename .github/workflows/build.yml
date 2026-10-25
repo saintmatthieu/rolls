@@ -1,0 +1,70 @@
+# Builds the site from the catalogue (tools/build.py) and deploys it to
+# GitHub Pages. Pull requests are built and checked, not deployed.
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read the pinned versions
+        run: grep -v '^#' pins.env >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v5
+        with:
+          repository: saintmatthieu/lilyport
+          ref: ${{ env.LILYPORT_REF }}
+          path: lilyport
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install lxml (schema check)
+        run: pip install lxml
+
+      - uses: actions/cache@v4
+        with:
+          path: lilyport/.tools
+          key: lilypond-${{ env.LILYPOND_VERSION }}-${{ runner.os }}
+
+      - name: Fetch LilyPond and the MusicXML schema
+        run: |
+          lilyport/tools/fetch-lilypond.sh "$LILYPOND_VERSION"
+          tools/fetch-schema.sh
+
+      - name: Build
+        run: python3 tools/build.py --lilyport lilyport --schema .cache/musicxml-4.0/musicxml.xsd
+
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

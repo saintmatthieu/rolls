@@ -1,0 +1,4 @@
+# Build output and caches (tools/build.py)
+/_site/
+/.cache/
+__pycache__/
