@@ -9,6 +9,7 @@ MusicXML with lilyport, check the result, and write
     _site/s/<id>/index.html   its page
     _site/index.json          the catalogue for Orchestrion and the web UI
     _site/index.html          the library page
+    _site/sitemap.xml, robots.txt  for search engines
 
 A score that fails a check is left out of the site, and the build fails
 (unless --keep-going), so that nothing unchecked is published.
@@ -225,16 +226,55 @@ def index_entry(record, mxl, xml_bytes):
 
 # ---- the web pages ----------------------------------------------------------
 
-def page(title, body, depth, description=""):
-    """A whole HTML page; depth is how many directories below the site root it
-    lives, for its relative links."""
-    up = "../" * depth
+def page(title, body, path, description="", data=None):
+    """A whole HTML page at path (relative to the site root, "" or "s/<id>/"),
+    with data as its schema.org JSON-LD, for search engines."""
+    up = "../" * path.count("/")
+    head = ""
+    if data:
+        # "</" would end the script element early.
+        text = json.dumps(data, ensure_ascii=False, indent=1).replace("</", "<\\/")
+        head = f'\n  <script type="application/ld+json">\n{text}\n  </script>'
     template = (WEB / "page.html").read_text(encoding="utf-8")
     return (template
             .replace("{{title}}", html.escape(title))
             .replace("{{description}}", html.escape(description))
+            .replace("{{url}}", html.escape(SITE_URL + path))
             .replace("{{root}}", up)
+            .replace("{{head}}", head)
             .replace("{{body}}", body))
+
+
+def full_title(entry):
+    """The title with its opus, which is often how a piece is searched for: on
+    the work, before a movement ("Sonata, Op. 27 No. 2: I. Adagio")."""
+    if not entry["opus"]:
+        return entry["title"]
+    work, colon, movement = entry["title"].partition(": ")
+    return f"{work}, {entry['opus']}{colon}{movement}"
+
+
+def score_data(entry):
+    """What a search engine should know about a score: the work, and the
+    MusicXML of it that we publish."""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "MusicComposition",
+        "name": full_title(entry),
+        "composer": {"@type": "Person", "name": entry["composer"]},
+        "url": SITE_URL + entry["page"],
+        "encoding": {
+            "@type": "MediaObject",
+            "name": f"{full_title(entry)}: MusicXML score",
+            "contentUrl": SITE_URL + entry["musicxml"],
+            "encodingFormat": "application/vnd.recordare.musicxml",
+            "license": entry["license"]["url"],
+            "isAccessibleForFree": True,
+        },
+    }
+    if entry["source"].get("url"):
+        data["encoding"]["isBasedOn"] = entry["source"]["url"]
+    return data
 
 
 def credit_lines(entry):
@@ -252,14 +292,14 @@ def credit_lines(entry):
 
 def score_page(entry):
     e = html.escape
-    subtitle = " · ".join(x for x in (entry["composer"], entry["opus"]) if x)
-    facts = f"{entry['measures']} bars · {entry['staves']} staves"
+    facts = " · ".join(x for x in (entry["instrument"], f"{entry['measures']} bars",
+                                   f"{entry['staves']} staves") if x)
     credits = "".join(f"<li>{line}</li>" for line in credit_lines(entry))
     body = f"""
 <article class="score">
   <p class="crumb"><a href="../../">All scores</a></p>
-  <h1>{e(entry['title'])}</h1>
-  <p class="composer">{e(subtitle)}</p>
+  <h1>{e(full_title(entry))}</h1>
+  <p class="composer">{e(entry['composer'])}</p>
   <p class="facts">{e(facts)}</p>
   <div class="actions">
     <a class="button primary" href="https://orchestrion.app/">Play it in Orchestrion</a>
@@ -269,8 +309,13 @@ def score_page(entry):
   tap the rhythm, and the score plays the notes.</p>
   <ul class="credits">{credits}</ul>
 </article>"""
-    return page(f"{entry['title']} — {entry['composer']} — Rolls", body, 2,
-                f"{entry['title']} by {entry['composer']}: a free score to play in Orchestrion.")
+    instrument = f" for {entry['instrument'].lower()}" if entry["instrument"] else ""
+    return page(f"{full_title(entry)} — {entry['composer']} — free sheet music (MusicXML)",
+                body, entry["page"],
+                f"Free sheet music of {full_title(entry)} by {entry['composer']}{instrument}: "
+                f"download the MusicXML score ({entry['license']['name']}), "
+                f"or play it in Orchestrion.",
+                score_data(entry))
 
 
 def library_page(entries):
@@ -298,8 +343,21 @@ def library_page(entries):
   <p class="empty" id="empty" hidden>No score matches.</p>
 </section>
 <script src="library.js"></script>"""
-    return page("Rolls — free scores to play", body, 0,
-                "Free, playable scores (MusicXML), made for Orchestrion.")
+    composers = sorted({entry["composer"].split()[-1] for entry in entries})
+    return page("Rolls — free sheet music to play (MusicXML)", body, "",
+                "Free sheet music, public domain and openly licensed, as MusicXML: "
+                f"{', '.join(composers)}. Made for Orchestrion.",
+                {"@context": "https://schema.org", "@type": "WebSite",
+                 "name": "Rolls", "url": SITE_URL})
+
+
+def sitemap(entries):
+    """sitemap.xml: every page, for search engines to find them all."""
+    urls = [SITE_URL] + [SITE_URL + entry["page"] for entry in entries]
+    lines = [f"  <url><loc>{html.escape(url)}</loc></url>" for url in urls]
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            + "\n".join(lines) + "\n</urlset>\n")
 
 
 # ---- the build --------------------------------------------------------------
@@ -358,6 +416,9 @@ def build(args):
         directory.mkdir(parents=True)
         (directory / "index.html").write_text(score_page(entry), encoding="utf-8")
     (out / "index.html").write_text(library_page(entries), encoding="utf-8")
+    (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
+    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
+                                    encoding="utf-8")
     for asset in ("style.css", "library.js", "favicon.png"):
         if (WEB / asset).exists():
             shutil.copy(WEB / asset, out / asset)
