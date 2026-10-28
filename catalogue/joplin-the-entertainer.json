@@ -16,6 +16,7 @@
     "url": "https://creativecommons.org/licenses/publicdomain/"
   },
   "credits": [
-    {"role": "Engraved for the Mutopia Project by", "name": "Chris Sawer"}
-  ]
+    { "role": "Engraved for the Mutopia Project by", "name": "Chris Sawer" }
+  ],
+  "lilyport": { "tempo": "4=72" }
 }

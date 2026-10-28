@@ -17,5 +17,6 @@
   },
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Keith OHara"}
-  ]
+  ],
+  "lilyport": {"tempo": "4.=42"}
 }
