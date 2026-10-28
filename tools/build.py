@@ -9,6 +9,7 @@ MusicXML with lilyport, check the result, and write
     _site/s/<id>/index.html   its page
     _site/index.json          the catalogue for Orchestrion and the web UI
     _site/index.html          the library page
+    _site/difficulty/         how difficulty is rated (tools/difficulty.py)
     _site/sitemap.xml, robots.txt  for search engines
 
 A score that fails a check is left out of the site, and the build fails
@@ -33,6 +34,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
+
+import difficulty
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
@@ -201,7 +204,7 @@ def measures(xml_bytes):
     }
 
 
-def index_entry(record, mxl, xml_bytes):
+def index_entry(record, mxl, xml_bytes, model):
     source = record["source"]
     entry = {
         "id": record["id"],
@@ -224,8 +227,13 @@ def index_entry(record, mxl, xml_bytes):
         "version": hashlib.sha256(xml_bytes).hexdigest()[:16],
         "size": mxl.stat().st_size,
         **measures(xml_bytes),
-        # Left for its own design: rhythm-only, notes, overall.
-        "difficulty": None,
+        # Levels on a 1-9 scale calibrated to Henle's, for Orchestrion's two
+        # ways of playing; "about" (relative) explains how they are rated.
+        "difficulty": {
+            **difficulty.levels(difficulty.measures(mxl), model),
+            "method": model["method"],
+            "about": "difficulty/",
+        },
     }
     if source["kind"] == "mutopia":
         entry["source"].update({
@@ -308,12 +316,17 @@ def score_page(entry):
     facts = " · ".join(x for x in (entry["instrument"], f"{entry['measures']} bars",
                                    f"{entry['staves']} staves") if x)
     credits = "".join(f"<li>{line}</li>" for line in credit_lines(entry))
+    level = entry["difficulty"]
+    levels = (f'<p class="levels">Difficulty: rhythm <b>{level["rhythm"]}</b> · '
+              f'notes <b>{level["notes"]}</b> <span class="scale">(1 to 9)</span> · '
+              f'<a href="../../{e(level["about"])}">how it is rated</a></p>')
     body = f"""
 <article class="score">
   <p class="crumb"><a href="../../">All scores</a></p>
   <h1>{e(full_title(entry))}</h1>
   <p class="composer">{e(entry['composer'])}</p>
   <p class="facts">{e(facts)}</p>
+  {levels}
   <div class="actions">
     <a class="button primary" href="https://orchestrion.app/">Play it in Orchestrion</a>
     <a class="button" href="../../{e(entry['musicxml'])}" download>Download MusicXML</a>
@@ -342,6 +355,7 @@ def library_page(entries):
     <a href="{e(entry['page'])}">
       <span class="title">{e(entry['title'])}</span>
       <span class="composer">{e(entry['composer'])}{' · ' + e(entry['opus']) if entry['opus'] else ''}</span>
+      <span class="levels">rhythm {entry['difficulty']['rhythm']} · notes {entry['difficulty']['notes']}</span>
     </a>
   </li>""")
     body = f"""
@@ -364,9 +378,103 @@ def library_page(entries):
                  "name": "Rolls", "url": SITE_URL})
 
 
+REFERENCES = [
+    ("G. Henle Verlag", "Levels of difficulty (piano: after Rolf Koenen)",
+     "https://www.henle.de/Levels-of-Difficulty/"),
+    ("E. Nakamura and K. Yoshii (2018)", "Statistical piano reduction controlling performance difficulty. "
+     "APSIPA Transactions on Signal and Information Processing", "https://arxiv.org/abs/1808.05006"),
+    ("E. Nakamura, N. Ono and S. Sagayama (2014)", "Merged-output HMM for piano fingering of both hands. ISMIR",
+     "https://archives.ismir.net/ismir2014/paper/000251.pdf"),
+    ("V. Sébastien, H. Ralambondrainy, O. Sébastien and N. Conruyt (2012)", "Score Analyzer: automatically "
+     "determining scores difficulty level for instrumental e-learning. ISMIR",
+     "https://ismir2012.ismir.net/authors/event/papers/571_ISMIR_2012.pdf"),
+    ("P. Ramoneda et al. (2022)", "Score difficulty analysis for piano performance education based on fingering. "
+     "ICASSP", "https://arxiv.org/abs/2203.13010"),
+    ("P. Ramoneda et al. (2024)", "Combining piano performance dimensions for score difficulty classification. "
+     "Expert Systems with Applications 238", "https://arxiv.org/abs/2306.08480"),
+    ("H. C. Longuet-Higgins and C. S. Lee (1984)", "The rhythmic interpretation of monophonic music. "
+     "Music Perception 1(4)", None),
+    ("F. Gómez, A. Melvin, D. Rappaport and G. T. Toussaint (2005)", "Mathematical measures of syncopation. "
+     "Bridges", None),
+    ("G. T. Toussaint (2013)", "The Geometry of Musical Rhythm. CRC Press", None),
+]
+
+MEASURES = {
+    "pace": "how fast the hands act: presses and releases per second for rhythm, notes per second "
+            "for notes, in the busiest passages (90th percentile of 3-second windows) [2]",
+    "r_indep": "independence of the hands: the share of a hand's actions the other hand doesn't share",
+    "r_sync": "syncopation as heard: onsets on weak beats with the stronger beat that follows left silent [7, 8]",
+    "r_hsync": "syncopation within each hand's own rhythm [7, 8]",
+    "r_offgrid": "notes off the beat's duple and triple subdivisions (other tuplets, irregular groups)",
+    "r_cross": "cross-rhythm: beats where duplets and triplets meet, in one hand or between the hands",
+    "r_ioi_h": "variety of the durations between a hand's onsets (entropy) [9]",
+    "n_chord": "notes per chord [4]",
+    "n_span": "hand span: the interval within a hand's chords [4, 6]",
+    "n_shift": "hand shifts: how far, beyond an octave, the notes a hand plays within 0.4 s reach [3, 4]",
+    "n_held": "notes held while the same hand plays others (finger independence) [4]",
+}
+
+
+def difficulty_page(model):
+    """How difficulty is rated, with the model's current weights and how well
+    it predicts Henle's levels."""
+    e = html.escape
+    refs = "".join(
+        f'<li id="ref{i}">{e(who)}. {f"<a href={chr(34)}{e(url)}{chr(34)}>{e(what)}</a>" if url else e(what)}.</li>'
+        for i, (who, what, url) in enumerate(REFERENCES, start=1))
+    weights = [("pace", model["pace"])] + [(n, w) for axis in ("rhythm", "notes")
+                                            for n, w in model[axis].items()]
+    rows = "".join(f"<tr><td>{e(MEASURES[n])}</td><td>{w:.2f}</td></tr>" for n, w in weights)
+    cal = model["calibration"]
+    body = f"""
+<article class="about">
+  <p class="crumb"><a href="../">All scores</a></p>
+  <h1>How difficulty is rated</h1>
+  <p class="lead">Each score has two levels, from 1 (easiest) to 9, after
+  Orchestrion's two ways of playing: <b>rhythm</b>, where you play each hand's
+  rhythm on any keys and the score supplies the notes, and <b>notes</b>, where
+  you play the notes yourself.</p>
+
+  <h2>What is measured</h2>
+  <p>Everything is computed from the score itself. Each staff is one hand,
+  whose voices combine into the rhythm it plays. A hand acts when it presses
+  and when it releases; a release counts when it doesn't coincide with the
+  hand's next press: a little when a note is merely not held to the next, much
+  more for a staccato. The measures, and the weight each currently has:</p>
+  <table class="weights"><tr><th>Measure</th><th>Weight</th></tr>{rows}</table>
+
+  <h2>How the levels are set</h2>
+  <p>The weights are fitted to the levels of difficulty that the publisher
+  G. Henle Verlag gives its piano editions [1], for {cal['pieces']} pieces from
+  the Mutopia Project that Henle has graded. Henle grades a piece as a whole,
+  so the fit predicts that level: a base, plus the piece's pace, plus its other
+  rhythm and notes measures. A score's rhythm level is the base, its pace, and
+  twice its other rhythm measures: what its level would be if its notes were as
+  hard as its rhythm; likewise for notes. Each piece left out of the fit in
+  turn, the fitted level is within one of Henle's for
+  {cal['within_one_level']:.0%} of the pieces, and equal for {cal['exact']:.0%}.</p>
+  <p>The levels are ours, not Henle's: a score's level here is what the model
+  makes of it, on a scale calibrated to Henle's.</p>
+
+  <h2>Prior work</h2>
+  <p>The measures follow research on the difficulty of piano scores and on
+  rhythmic complexity: speed and fingering [2, 3], hand span, chords and
+  polyphony [4, 5, 6], syncopation [7, 8] and rhythmic variety [9]. Combining
+  several aspects of performance, rather than one, follows [6]. Weighting
+  releases, and the split into a rhythm and a notes level, are our own.</p>
+  <ol class="references">{refs}</ol>
+  <p class="hint">Method {e(model['method'])}. The code and the calibration data are in
+  <a href="https://github.com/saintmatthieu/rolls/tree/main/tools">the repository</a>
+  (<code>difficulty.py</code>, <code>calibrate.py</code>, <code>difficulty-calibration.tsv</code>).</p>
+</article>"""
+    return page("How difficulty is rated — Rolls", body, "difficulty/",
+                "How Rolls rates the difficulty of a score, for rhythm and for notes, "
+                "and the research it builds on.")
+
+
 def sitemap(entries):
     """sitemap.xml: every page, for search engines to find them all."""
-    urls = [SITE_URL] + [SITE_URL + entry["page"] for entry in entries]
+    urls = [SITE_URL, SITE_URL + "difficulty/"] + [SITE_URL + entry["page"] for entry in entries]
     lines = [f"  <url><loc>{html.escape(url)}</loc></url>" for url in urls]
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -383,6 +491,7 @@ def build(args):
     convert_ly = lilypond.with_name("convert-ly")
     log(f"LilyPond: {lilypond}")
     records = load_catalogue(args.only)
+    model = json.loads(difficulty.MODEL.read_text(encoding="utf-8"))
 
     out = Path(args.out).resolve()
     if out.exists():
@@ -409,7 +518,7 @@ def build(args):
             xml_bytes = musicxml_text(mxl)
             if args.schema:
                 check_schema(xml_bytes, args.schema)
-            entries.append(index_entry(record, mxl, xml_bytes))
+            entries.append(index_entry(record, mxl, xml_bytes, model))
             log(f"    ok")
         except (BuildError, subprocess.CalledProcessError, OSError, ET.ParseError) as error:
             log(f"    FAILED: {error}")
@@ -429,6 +538,8 @@ def build(args):
         directory.mkdir(parents=True)
         (directory / "index.html").write_text(score_page(entry), encoding="utf-8")
     (out / "index.html").write_text(library_page(entries), encoding="utf-8")
+    (out / "difficulty").mkdir()
+    (out / "difficulty" / "index.html").write_text(difficulty_page(model), encoding="utf-8")
     (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
                                     encoding="utf-8")

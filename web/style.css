@@ -67,3 +67,12 @@ h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
 .credits { padding-left: 1.2rem; margin-top: 1.5rem; }
 footer.site { border-top: 1px solid var(--line); padding-top: 1rem; padding-bottom: 2rem;
   color: var(--muted); font-size: 0.9rem; }
+.levels { margin: 0.25rem 0; }
+.levels .scale { color: var(--muted); }
+.card .levels { display: block; color: var(--muted); font-size: 0.85rem; margin: 0.2rem 0 0; }
+.about h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
+.weights { border-collapse: collapse; margin: 0.5rem 0; }
+.weights td, .weights th { text-align: left; padding: 0.3rem 0.75rem 0.3rem 0; vertical-align: top;
+  border-bottom: 1px solid var(--line); }
+.weights td:last-child, .weights th:last-child { text-align: right; white-space: nowrap; }
+.references li { margin: 0.35rem 0; }

@@ -1,0 +1,142 @@
+# Mutopia pieces (MutopiaProject 2144afd) with G. Henle Verlag's level of difficulty
+# (1-9, https://www.henle.de/Levels-of-Difficulty/), as shown on the product page
+# of the given HN edition. Whole works only: Henle rates a sonata as a whole.
+# path	level	HN	Henle title
+ftp/BachJS/BWV772/bach-invention-01/bach-invention-01.ly	3	HN 1589	Invention 1 C major BWV 772
+ftp/BachJS/BWV773/bach-invention-02/bach-invention-02.ly	4	HN 1589	Invention 2 c minor BWV 773
+ftp/BachJS/BWV774/bach-invention-03/bach-invention-03.ly	4	HN 1589	Invention 3 D major BWV 774
+ftp/BachJS/BWV775/bach-invention-04/bach-invention-04.ly	3	HN 1589	Invention 4 d minor BWV 775
+ftp/BachJS/BWV776/bach-invention-05/bach-invention-05.ly	4	HN 1589	Invention 5 E flat major BWV 776
+ftp/BachJS/BWV777/bach-invention-06/bach-invention-06.ly	3	HN 1589	Invention 6 E major BWV 777
+ftp/BachJS/BWV778/bach-invention-07/bach-invention-07.ly	4	HN 1589	Invention 7 e minor BWV 778
+ftp/BachJS/BWV779/bach-invention-08/bach-invention-08.ly	4	HN 1589	Invention 8 F major BWV 779
+ftp/BachJS/BWV780/bach-invention-09/bach-invention-09.ly	4	HN 1589	Invention 9 f minor BWV 780
+ftp/BachJS/BWV781/bach-invention-10/bach-invention-10.ly	4	HN 1589	Invention 10 G major BWV 781
+ftp/BachJS/BWV782/bach-invention-11/bach-invention-11.ly	4	HN 1589	Invention 11 g minor BWV 782
+ftp/BachJS/BWV783/bach-invention-12/bach-invention-12.ly	4	HN 1589	Invention 12 A major BWV 783
+ftp/BachJS/BWV784/bach-invention-13/bach-invention-13.ly	4	HN 1589	Invention 13 a minor BWV 784
+ftp/BachJS/BWV785/bach-invention-14/bach-invention-14.ly	4	HN 1589	Invention 14 B flat major BWV 785
+ftp/BachJS/BWV786/bach-invention-15/bach-invention-15.ly	4	HN 1589	Invention 15 b minor BWV 786
+ftp/BachJS/BWV787/bwv787/bwv787.ly	4	HN 1589	Sinfonia 1 C major BWV 787
+ftp/BachJS/BWV788/bwv788/bwv788.ly	5	HN 1589	Sinfonia 2 c minor BWV 788
+ftp/BachJS/BWV789/bwv789/bwv789.ly	5	HN 1589	Sinfonia 3 D major BWV 789
+ftp/BachJS/BWV790/bwv790/bwv790.ly	5	HN 1589	Sinfonia 4 d minor BWV 790
+ftp/BachJS/BWV791/bwv791/bwv791.ly	5	HN 1589	Sinfonia 5 E flat major BWV 791
+ftp/BachJS/BWV792/bwv792/bwv792.ly	5	HN 1589	Sinfonia 6 E major BWV 792
+ftp/BachJS/BWV793/bwv793/bwv793.ly	5	HN 1589	Sinfonia 7 e minor BWV 793
+ftp/BachJS/BWV794/bwv794/bwv794.ly	5	HN 1589	Sinfonia 8 F major BWV 794
+ftp/BachJS/BWV795/bwv795/bwv795.ly	5	HN 1589	Sinfonia 9 f minor BWV 795
+ftp/BachJS/BWV796/bwv796/bwv796.ly	5	HN 1589	Sinfonia 10 G major BWV 796
+ftp/BachJS/BWV797/bwv797/bwv797.ly	4	HN 1589	Sinfonia 11 g minor BWV 797
+ftp/BachJS/BWV798/bwv798/bwv798.ly	5	HN 1589	Sinfonia 12 A major BWV 798
+ftp/BachJS/BWV799/bwv799/bwv799.ly	5	HN 1589	Sinfonia 13 a minor BWV 799
+ftp/BachJS/BWV800/bwv800/bwv800.ly	5	HN 1589	Sinfonia 14 B flat major BWV 800
+ftp/BachJS/BWV801/bwv801/bwv801.ly	5	HN 1589	Sinfonia 15 b minor BWV 801
+ftp/BachJS/BWV846/wtk1-prelude1/wtk1-prelude1.ly	1	HN 14	Präludium C-dur BWV 846
+ftp/BachJS/BWV847/bwv847a/bwv847a.ly	6	HN 14	Präludium c-moll BWV 847
+ftp/BachJS/BWV848/bwv848a/bwv848a.ly	6	HN 14	Präludium Cis-dur BWV 848
+ftp/BachJS/BWV849/bwv849a/bwv849a.ly	5	HN 14	Präludium cis-moll BWV 849
+ftp/BachJS/BWV850/bwv850a/bwv850a-lys/bwv850a.ly	6	HN 14	Präludium D-dur BWV 850
+ftp/BachJS/BWV851/bwv851a/bwv851a.ly	4	HN 14	Präludium d-moll BWV 851
+ftp/BachJS/BWV853/bwv853a/bwv853a.ly	4	HN 14	Präludium es-moll BWV 853
+ftp/BachJS/BWV855/bwv855a/bwv855a.ly	5	HN 14	Präludium e-moll BWV 855
+ftp/BachJS/BWV856/BWV856_Praeludium11/BWV856_Praeludium11.ly	5	HN 14	Präludium F-dur BWV 856
+ftp/BachJS/BWV857/BWV857_Praeludium12/BWV857_Praeludium12.ly	4	HN 14	Präludium f-moll BWV 857
+ftp/BachJS/BWV860/BWV860_Praeludium15/BWV860_Praeludium15.ly	4	HN 14	Präludium G-dur BWV 860
+ftp/BachJS/BWV861/BWV861_Praeludium16/BWV861_Praeludium16.ly	5	HN 14	Präludium g-moll BWV 861
+ftp/BachJS/BWV862/bach-prelude17/bach-prelude17.ly	4	HN 14	Präludium As-dur BWV 862
+ftp/BachJS/BWV865/BWV865_Praeludium20/BWV865_Praeludium20.ly	6	HN 14	Präludium a-moll BWV 865
+ftp/BachJS/BWV869/BWV869_Praeludium24/BWV869_Praeludium24.ly	5	HN 14	Präludium h-moll BWV 869
+ftp/BachJS/BWVAnh113/anna-magdalena-03/anna-magdalena-03.ly	2	HN 349	Menuet BWV Anhang 113
+ftp/BachJS/BWVAnh114/anna-magdalena-04/anna-magdalena-04.ly	1	HN 349	Menuet BWV Anhang 114
+ftp/BachJS/BWVAnh115/anna-magdalena-05/anna-magdalena-05.ly	1	HN 349	Menuet BWV Anhang 115
+ftp/BachJS/BWVAnh116/anna-magdalena-07/anna-magdalena-07.ly	2	HN 349	Menuet BWV Anhang 116
+ftp/BachJS/BWVAnh117b/BWV-117b/BWV-117b.ly	2	HN 349	Polonaise BWV Anhang 117b
+ftp/BachJS/BWVAnh118/BWV-118/BWV-118.ly	2	HN 349	Menuet BWV Anhang 118
+ftp/BachJS/BWVAnh119/BWV-119/BWV-119.ly	2	HN 349	Polonaise BWV Anhang 119
+ftp/BachJS/BWVAnh120/BWV-120/BWV-120.ly	2	HN 349	Menuet BWV Anhang 120
+ftp/BachJS/BWVAnh121/BWV-121/BWV-121.ly	2	HN 349	Menuet BWV Anhang 121
+ftp/BachJS/BWVAnh126/anna-magdalena-22/anna-magdalena-22.ly	1	HN 349	Musette BWV Anhang 126
+ftp/BachJS/BWVAnh127/BWV-127/BWV-127.ly	3	HN 349	Marche BWV Anhang 127
+ftp/BachJS/BWVAnh128/BWV-128/BWV-128.ly	2	HN 349	Polonaise BWV Anhang 128
+ftp/BachJS/BWVAnh691/BWV-691/BWV-691.ly	3	HN 349	Choral: Wer nur den lieben Gott läßt walten BWV 691
+ftp/BeethovenLv/WoO59/fur_Elise_WoO59/fur_Elise_WoO59.ly	3	HN 1347	Bagatelle (Für Elise) a-moll WoO 59
+ftp/ChopinFF/O10/10-02-i/10-02-i.ly	8	HN 124	Etude la mineur op. 10,2
+ftp/ChopinFF/O10/chopin-op-10-09-wfi/chopin-op-10-09-wfi.ly	6	HN 124	Etude fa mineur op. 10,9
+ftp/ChopinFF/O10/chp-10-01/chp-10-01-lys/chp-10-01-a4.ly	9	HN 124	Etude Ut majeur op. 10,1
+ftp/ChopinFF/O10/chp-10-05/chp-10-05-lys/chp-10-05-a4.ly	7	HN 124	Etude Sol bémol majeur op. 10,5
+ftp/ChopinFF/O10/op-10-12-wfi/op-10-12-wfi.ly	8	HN 124	Etude (Révolution) ut mineur op. 10,12
+ftp/ChopinFF/O23/chopin-op23-ballade-1/chopin-op23-ballade-1-lys/chopin-op23-ballade-1.ly	8	HN 863	Ballade g minor op. 23
+ftp/ChopinFF/O25/chopin-op-25-01/chopin-op-25-01.ly	6	HN 124	Etude La bémol majeur op. 25,1
+ftp/ChopinFF/O25/PS-chopin-25-02/a4-PS-chopin-25-02-i.ly	7	HN 124	Etude fa mineur op. 25,2
+ftp/ChopinFF/O27/chopin-nocturne-8/chopin-nocturne-8.ly	6	HN 185	Nocturne D flat major op. 27,2
+ftp/ChopinFF/O28/Chop-28-10/Chop-28-10.ly	7	HN 883	Prelude c sharp minor op. 28,10
+ftp/ChopinFF/O28/Chop-28-11/Chop-28-11.ly	7	HN 883	Prelude B major op. 28,11
+ftp/ChopinFF/O28/Chop-28-12/Chop-28-12.ly	8	HN 883	Prelude g sharp minor op. 28,12
+ftp/ChopinFF/O28/Chop-28-13/Chop-28-13.ly	6	HN 883	Prelude F sharp major op. 28,13
+ftp/ChopinFF/O28/Chop-28-14/Chop-28-14.ly	7	HN 883	Prelude e flat minor op. 28,14
+ftp/ChopinFF/O28/Chop-28-15/Chop-28-15-lys/chopin_prelude_op28_no15.ly	5	HN 883	Prelude (Raindrop) D flat major op. 28,15
+ftp/ChopinFF/O28/Chop-28-16/Chop-28-16.ly	8	HN 883	Prelude b flat minor op. 28,16
+ftp/ChopinFF/O28/Chop-28-17/Chop-28-17-lys/Chop-28-17.ly	7	HN 883	Prelude A flat major op. 28,17
+ftp/ChopinFF/O28/Chop-28-18/Chop-28-18.ly	7	HN 883	Prelude f minor op. 28,18
+ftp/ChopinFF/O28/Chop-28-19/Chop-28-19.ly	7	HN 883	Prelude E flat major op. 28,19
+ftp/ChopinFF/O28/Chop-28-1/Chop-28-1.ly	6	HN 883	Prelude C major op. 28,1
+ftp/ChopinFF/O28/Chop-28-20/Chop-28-20.ly	4	HN 883	Prelude c minor op. 28,20
+ftp/ChopinFF/O28/Chop-28-21/Chop-28-21.ly	6	HN 883	Prelude B flat major op. 28,21
+ftp/ChopinFF/O28/Chop-28-22/Chop-28-22.ly	7	HN 883	Prelude g minor op. 28,22
+ftp/ChopinFF/O28/Chop-28-23/Chop-28-23.ly	6	HN 883	Prelude F major op. 28,23
+ftp/ChopinFF/O28/Chop-28-24/Chop-28-24.ly	9	HN 883	Prelude d minor op. 28,24
+ftp/ChopinFF/O28/Chop-28-2/Chop-28-2.ly	5	HN 883	Prelude a minor op. 28,2
+ftp/ChopinFF/O28/Chop-28-3/Chop-28-3.ly	7	HN 883	Prelude G major op. 28,3
+ftp/ChopinFF/O28/Chop-28-4/Chop-28-4.ly	4	HN 883	Prelude e minor op. 28,4
+ftp/ChopinFF/O28/Chop-28-5/Chop-28-5.ly	7	HN 883	Prelude D major op. 28,5
+ftp/ChopinFF/O28/Chop-28-6/Chop-28-6-lys/chopin_prelude_op28_no6.ly	4	HN 883	Prelude b minor op. 28,6
+ftp/ChopinFF/O28/Chop-28-7/Chop-28-7-lys/chopin_prelude_op28_no7.ly	4	HN 883	Prelude A major op. 28,7
+ftp/ChopinFF/O28/Chop-28-8/Chop-28-8.ly	8	HN 883	Prelude f sharp minor op. 28,8
+ftp/ChopinFF/O28/Chop-28-9/Chop-28-9.ly	5	HN 883	Prelude E major op. 28,9
+ftp/ChopinFF/O33/Mazurka-Op33-No1/Mazurka-Op33-No1.ly	5	HN 348	Mazurka g sharp minor op. 33,1
+ftp/ChopinFF/O45/chopin_prelude_op45/chopin_prelude_op45.ly	6	HN 883	Prelude c sharp minor op. 45
+ftp/ChopinFF/O52/ballade-4/ballade-4-lys/ballade-4.ly	9	HN 863	Ballade f minor op. 52
+ftp/ChopinFF/O66/chopin_fantaisie-impromptu/chopin_fantaisie-impromptu.ly	7	HN 1320	Fantaisie-Impromptu c sharp minor op. 66
+ftp/ChopinFF/O72/nocturne_in_e_minor/nocturne_in_e_minor.ly	5	HN 185	Nocturne e minor op. post. 72,1
+ftp/ChopinFF/O9/chopin_nocturne_op9_n2/chopin_nocturne_op9_n2.ly	6	HN 185	Nocturne E flat major op. 9,2
+ftp/ChopinFF/O9/chopin_nocturne_op9_n3/chopin_nocturne_op9_n3.ly	7	HN 185	Nocturne B major op. 9,3
+ftp/ChopinFF/O9/nocturne_in_b-flat_minor/nocturne_in_b-flat_minor.ly	6	HN 185	Nocturne b flat minor op. 9,1
+ftp/DebussyC/L66/debussy_Arabesque_1/debussy_Arabesque_1.ly	4	HN 1193	Deux Arabesques
+ftp/DebussyC/L66/debussy_Arabesque_2/debussy_Arabesque_2.ly	4	HN 1193	Deux Arabesques
+ftp/DebussyC/L75/debussy_Ste_Bergamesq_Clair/debussy_Ste_Bergamesq_Clair.ly	5	HN 381	Clair de lune D flat major
+ftp/JoplinS/entertainer/entertainer.ly	4	HN 1727	The Entertainer
+ftp/JoplinS/maple/maple.ly	4	HN 1728	Maple Leaf Rag
+ftp/SatieE/Gnossienne/no_1/no_1.ly	2	HN 1073	Gnossienne no. 1
+ftp/SatieE/Gnossienne/no_2/no_2.ly	2	HN 1073	Gnossienne no. 2
+ftp/SatieE/Gnossienne/no_3/no_3.ly	2	HN 1073	Gnossienne no. 3
+ftp/SatieE/gymnopedie_1/gymnopedie_1.ly	2	HN 1072	Gymnopédie no. 1
+ftp/SatieE/gymnopedie_2/gymnopedie_2.ly	2	HN 1072	Gymnopédie no. 2
+ftp/SatieE/gymnopedie_3/gymnopedie_3.ly	2	HN 1072	Gymnopédie no. 3
+ftp/SchumannR/O15/SchumannOp15No01/SchumannOp15No01.ly	4	HN 46	Von fremden Ländern und Menschen op. 15,1
+ftp/SchumannR/O15/SchumannOp15No02/SchumannOp15No02.ly	4	HN 46	Curiose Geschichte op. 15,2
+ftp/SchumannR/O15/SchumannOp15No03/SchumannOp15No03.ly	5	HN 46	Hasche-Mann op. 15,3
+ftp/SchumannR/O15/SchumannOp15No04/SchumannOp15No04.ly	4	HN 46	Bittendes Kind op. 15,4
+ftp/SchumannR/O15/SchumannOp15No05/SchumannOp15No05.ly	5	HN 46	Glückes genug op. 15,5
+ftp/SchumannR/O15/SchumannOp15No06/SchumannOp15No06.ly	4	HN 46	Wichtige Begebenheit op. 15,6
+ftp/SchumannR/O15/SchumannOp15No07/SchumannOp15No07.ly	5	HN 46	Träumerei op. 15,7
+ftp/SchumannR/O68/schumann-op68-01-melodie/schumann-op68-01-melodie.ly	2	HN 46	Melodie op. 68,1
+ftp/SchumannR/O68/schumann-op68-02-marche-militaire/schumann-op68-02-marche-militaire.ly	2	HN 46	Soldatenmarsch op. 68,2
+ftp/SchumannR/O68/schumann-op68-03-chanson-fredonnee/schumann-op68-03-chanson-fredonnee.ly	2	HN 46	Trällerliedchen op. 68,3
+ftp/SchumannR/O68/schumann-op68-04-choral/schumann-op68-04-choral.ly	3	HN 46	Ein Choral op. 68,4
+ftp/SchumannR/O68/schumann-op68-05-petite-piece/schumann-op68-05-petite-piece.ly	2	HN 46	Stückchen op. 68,5
+ftp/SchumannR/O68/schumann-op68-06-pauvre-orpheline/schumann-op68-06-pauvre-orpheline.ly	3	HN 46	Armes Waisenkind op. 68,6
+ftp/SchumannR/O68/schumann-op68-07-chanson-du-chasseur/schumann-op68-07-chanson-du-chasseur.ly	3	HN 46	Jägerliedchen op. 68,7
+ftp/SchumannR/O68/schumann-op68-08-cavalier-sauvage/schumann-op68-08-cavalier-sauvage.ly	3	HN 46	Wilder Reiter op. 68,8
+ftp/SchumannR/O68/schumann-op68-09-chanson-populaire/schumann-op68-09-chanson-populaire.ly	3	HN 46	Volksliedchen op. 68,9
+ftp/SchumannR/O68/schumann-op68-10-gai-laboureur/schumann-op68-10-gai-laboureur.ly	3	HN 46	Fröhlicher Landmann, von der Arbeit zurückkehrend op. 68,10
+ftp/SchumannR/O68/schumann-op68-11-sicilienne/schumann-op68-11-sicilienne.ly	3	HN 46	Sicilianisch op. 68,11
+ftp/SchumannR/O68/schumann-op68-12-Pere-Fouettard/schumann-op68-12-Pere-Fouettard.ly	4	HN 46	Knecht Ruprecht op. 68,12
+ftp/SchumannR/O68/schumann-op68-13-Mai-cher-Mai/schumann-op68-13-Mai-cher-Mai.ly	5	HN 46	Mai, lieber Mai, - Bald bist du wieder da! op. 68,13
+ftp/SchumannR/O68/schumann-op68-14-petite-etude/schumann-op68-14-petite-etude.ly	3	HN 46	Kleine Studie op. 68,14
+ftp/SchumannR/O68/schumann-op68-16-premier-chagrin/schumann-op68-16-premier-chagrin.ly	4	HN 46	Erster Verlust op. 68,16
+ftp/SchumannR/O68/schumann-op68-18-moissonneurs/schumann-op68-18-moissonneurs.ly	4	HN 46	Schnitterliedchen op. 68,18
+ftp/SchumannR/O68/schumann-op68-25-theater/schumann-op68-25-theater.ly	5	HN 46	Nachklänge aus dem Theater op. 68,25
+ftp/SchumannR/O68/schumann-op68-26-sans-titre/schumann-op68-26-sans-titre.ly	4	HN 46	*** op. 68,26
+ftp/SchumannR/O68/schumann-op68-32-sheherazade/schumann-op68-32-sheherazade.ly	4	HN 46	Sheherazade op. 68,32
+ftp/SchumannR/O68/schumann-op68-36-chant-de-marins-italiens/schumann-op68-36-chant-de-marins-italiens.ly	6	HN 46	Lied italienischer Marinari op. 68,36

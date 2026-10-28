@@ -28,6 +28,30 @@ elsewhere.
 - `pins.env` pins lilyport and LilyPond. The workflow builds and deploys on
   every push to `main`; generated files are never committed.
 
+## Difficulty
+
+Each score has a **rhythm** and a **notes** level, 1 to 9, for Orchestrion's
+two ways of playing (`difficulty` in `index.json`; explained at
+[/difficulty/](https://rolls.orchestrion.app/difficulty/)). `tools/difficulty.py`
+measures the score: pace, hand independence, syncopation, tuplets and
+cross-rhythms, chords, hand span and shifts, held notes. The measures' weights
+are fitted (`tools/calibrate.py`) to G. Henle Verlag's
+[levels of difficulty](https://www.henle.de/Levels-of-Difficulty/) for 118
+Mutopia pieces Henle has graded (`tools/difficulty-calibration.tsv`), and kept
+in `tools/difficulty-model.json`; left out of the fit in turn, 86 % of them get
+a level within one of Henle's. The levels are ours, on a scale calibrated to
+Henle's.
+
+The measures build on research on piano score difficulty (Nakamura & Yoshii
+2018; Nakamura, Ono & Sagayama 2014; Sébastien et al. 2012; Ramoneda et al.
+2022, 2024) and on rhythmic complexity (Longuet-Higgins & Lee 1984; Gómez et
+al. 2005; Toussaint 2013): full references on the site's page.
+
+```sh
+../lilyport/.venv/bin/python tools/calibrate.py convert --lilyport ../lilyport
+python3 tools/calibrate.py fit     # needs numpy; rewrites difficulty-model.json
+```
+
 ## Building locally
 
 ```sh
