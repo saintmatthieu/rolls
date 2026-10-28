@@ -1,0 +1,21 @@
+{
+  "title": "The Well-Tempered Clavier, Book I: Prelude No. 1 in C major",
+  "composer": "Johann Sebastian Bach",
+  "opus": "BWV 846",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 5,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BachJS/BWV846/wtk1-prelude1/wtk1-prelude1.ly",
+    "edition": null
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Tobias Erbsland"}
+  ]
+}

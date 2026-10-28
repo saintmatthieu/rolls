@@ -1,0 +1,21 @@
+{
+  "title": "Fantaisie-Impromptu",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 66",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1693,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O66/chopin_fantaisie-impromptu/chopin_fantaisie-impromptu.ly",
+    "edition": "Edited by Herrmann Scholtz"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Guy D. Lederfein"}
+  ]
+}

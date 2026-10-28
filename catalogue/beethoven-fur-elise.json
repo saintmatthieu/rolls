@@ -1,0 +1,21 @@
+{
+  "title": "Für Elise",
+  "composer": "Ludwig van Beethoven",
+  "opus": "WoO 59",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 931,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BeethovenLv/WoO59/fur_Elise_WoO59/fur_Elise_WoO59.ly",
+    "edition": "Breitkopf & Härtel, 1888"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Stelios Samelis"}
+  ]
+}

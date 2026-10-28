@@ -1,0 +1,21 @@
+{
+  "title": "Suite bergamasque: III. Clair de lune",
+  "composer": "Claude Debussy",
+  "opus": "L. 75",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1778,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/DebussyC/L75/debussy_Ste_Bergamesq_Clair/debussy_Ste_Bergamesq_Clair.ly",
+    "edition": "E. Fromont, 1905"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Keith OHara"}
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Prelude in E minor",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 28 No. 4",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 468,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O28/Chop-28-4/Chop-28-4.ly",
+    "edition": "Peters, 1879"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Magnus Lewis-Smith"}
+  ]
+}

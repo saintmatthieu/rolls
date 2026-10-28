@@ -1,0 +1,21 @@
+{
+  "title": "Minuet in G major",
+  "composer": "Christian Petzold",
+  "opus": "BWV Anh. 114",
+  "instrument": "Piano",
+  "tags": ["piano", "bach", "anna magdalena"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 75,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BachJS/BWVAnh114/anna-magdalena-04/anna-magdalena-04.ly",
+    "edition": "Bach-Gesellschaft"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Allen Garvin"}
+  ]
+}

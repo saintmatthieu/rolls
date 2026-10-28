@@ -1,0 +1,22 @@
+{
+  "title": "Piano Sonata No. 11: III. Rondo alla turca",
+  "composer": "Wolfgang Amadeus Mozart",
+  "opus": "K. 331",
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 108,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/MozartWA/KV331/KV331_3_RondoAllaTurca/KV331_3_RondoAllaTurca-lys/KV331_3_RondoAllaTurca.ly",
+    "edition": null
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Rune Zedeler"},
+    {"role": "Engraved for the Mutopia Project by", "name": "Chris Sawer"}
+  ]
+}
