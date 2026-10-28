@@ -1,0 +1,21 @@
+{
+  "title": "The Entertainer",
+  "composer": "Scott Joplin",
+  "opus": null,
+  "instrument": "Piano",
+  "tags": ["piano"],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 263,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/JoplinS/entertainer/entertainer.ly",
+    "edition": "Original edition, 1902"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {"role": "Engraved for the Mutopia Project by", "name": "Chris Sawer"}
+  ]
+}
