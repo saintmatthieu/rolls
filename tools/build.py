@@ -123,7 +123,9 @@ def prepare_source(record, repo, convert_ly, work):
     source = repo / record["source"]["path"]
     if work.exists():
         shutil.rmtree(work)
-    shutil.copytree(source.parent, work)
+    # symlinks: most pieces have a Makefile linking to Mutopia's scripts,
+    # outside the sparse checkout.
+    shutil.copytree(source.parent, work, symlinks=True)
     main = work / source.name
     for ly in work.glob("*.ly"):
         result = subprocess.run([str(convert_ly), "-e", str(ly)],
@@ -131,6 +133,17 @@ def prepare_source(record, repo, convert_ly, work):
         if result.returncode:
             raise BuildError(f"convert-ly failed on {ly.name}:\n{result.stderr}")
     return main
+
+
+def header_text(main):
+    """The main file's text and that of the files beside it that it includes,
+    where a piece's header may be (e.g. \\include "header.ly")."""
+    text = main.read_text(encoding="utf-8", errors="replace")
+    for name in re.findall(r'\\include\s+"([^"]+)"', text):
+        included = main.parent / name
+        if included.is_file():
+            text += included.read_text(encoding="utf-8", errors="replace")
+    return text
 
 
 def check_license(record, ly_text):
@@ -390,7 +403,7 @@ def build(args):
         try:
             main = prepare_source(record, repos[record["source"]["commit"]], convert_ly,
                                   CACHE / "work" / record["id"])
-            check_license(record, main.read_text(encoding="utf-8", errors="replace"))
+            check_license(record, header_text(main))
             mxl = out / "scores" / f"{record['id']}.mxl"
             convert(record, main, lilyport, mxl)
             xml_bytes = musicxml_text(mxl)
