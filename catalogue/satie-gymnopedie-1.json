@@ -17,5 +17,6 @@
   },
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Evin Robertson"}
-  ]
+  ],
+  "lilyport": {"tempo": "4=66"}
 }
