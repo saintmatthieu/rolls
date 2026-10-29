@@ -306,7 +306,7 @@ def credit_lines(entry):
     license_ = entry["license"]
     lines.append(f'Licence: <a href="{e(license_["url"])}">{e(license_["name"])}</a>')
     if entry["source"].get("url"):
-        lines.append(f'Source: <a href="{e(entry["source"]["url"])}">'
+        lines.append(f'Source and printable PDF: <a href="{e(entry["source"]["url"])}">'
                      f'Mutopia Project, piece {entry["source"]["mutopiaId"]}</a>')
     return lines
 
