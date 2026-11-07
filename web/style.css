@@ -45,15 +45,49 @@ h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
   width: 100%; margin: 1rem 0; padding: 0.6rem 0.8rem; font: inherit;
   color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px;
 }
-.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
-.card a {
-  display: block; height: 100%; padding: 0.9rem 1rem; text-decoration: none; color: var(--fg);
-  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+/* The library page takes its table's width, which may exceed the text
+   column's: at least that column, at most 72rem or the screen. Header and
+   footer follow it (contain: their own text doesn't widen the page). */
+body:has(.library) { width: max-content; min-width: min(52rem, 100%);
+  max-width: min(72rem + 32px, 100%); margin: 0 auto; }
+body:has(.library) > header.site, body:has(.library) > main,
+body:has(.library) > footer.site { max-width: none; }
+body:has(.library) > header.site, body:has(.library) > footer.site { contain: inline-size; }
+.scores { min-width: 100%; border-collapse: collapse; background: var(--card);
+  border: 1px solid var(--line); }
+.scores th, .scores td { padding: 0.45rem 0.6rem; text-align: left; vertical-align: baseline;
+  border-bottom: 1px solid var(--line); }
+.scores thead tr { background: var(--bg); }
+.scores thead th { vertical-align: bottom; font-weight: normal; }
+/* Every other column faintly tinted, header included, so that Rhythm and
+   Notes read as part of Difficulty. A tint, not a colour: the row under the
+   pointer still shows through. */
+.scores .composer, .scores .level { background: color-mix(in srgb, var(--fg) 5%, transparent); }
+/* Rows the search leaves out still size the columns: widths don't jump. */
+.scores tbody tr[hidden] { display: table-row; visibility: collapse; }
+.scores thead tr:first-child th.level { text-align: center; border-bottom: 0; }
+.scores th button { font: inherit; font-weight: bold; color: var(--fg); background: none;
+  border: 0; padding: 0; cursor: pointer; text-align: inherit; white-space: nowrap; }
+.scores th button:hover { color: var(--link); }
+/* Every heading keeps room for the arrow, so columns don't move when sorting. */
+.scores th button::after { content: " ▲"; color: var(--gold); font-size: 0.8em; visibility: hidden; }
+.scores th[aria-sort] button::after { visibility: visible; }
+.scores th[aria-sort="descending"] button::after { content: " ▼"; }
+.scores td.level, .scores td.bars {
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.scores td.title a { font-weight: bold; text-decoration: none; }
+.scores td.title a:hover { text-decoration: underline; }
+.scores .sub { display: none; color: var(--muted); font-size: 0.9rem; }
+.scores .sub span { white-space: nowrap; }
+.scores td.composer, .scores td.opus { color: var(--muted); }
+.scores td.composer, .scores td.opus { white-space: nowrap; }
+.scores tbody tr:hover { background: var(--bg); }
+.note { color: var(--muted); font-size: 0.9rem; }
+@media (max-width: 40rem) {
+  .scores .composer, .scores .opus, .scores .bars { display: none; }
+  .scores .sub { display: block; }
+  .scores th, .scores td { padding: 0.45rem 0.4rem; }
 }
-.card a:hover { border-color: var(--gold); }
-.card .title { display: block; font-weight: bold; }
-.card .composer { display: block; color: var(--muted); font-size: 0.95rem; }
 .crumb { margin: 0 0 1rem; }
 .score .composer { font-size: 1.15rem; margin: 0; }
 .facts, .hint { color: var(--muted); }
@@ -69,7 +103,6 @@ footer.site { border-top: 1px solid var(--line); padding-top: 1rem; padding-bott
   color: var(--muted); font-size: 0.9rem; }
 .levels { margin: 0.25rem 0; }
 .levels .scale { color: var(--muted); }
-.card .levels { display: block; color: var(--muted); font-size: 0.85rem; margin: 0.2rem 0 0; }
 .about h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
 .weights { border-collapse: collapse; margin: 0.5rem 0; }
 .weights td, .weights th { text-align: left; padding: 0.3rem 0.75rem 0.3rem 0; vertical-align: top;

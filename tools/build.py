@@ -31,6 +31,7 @@ import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -214,6 +215,7 @@ def index_entry(record, mxl, xml_bytes, model):
         "opus": record.get("opus"),
         "instrument": record.get("instrument"),
         "tags": record.get("tags", []),
+        **({"composerSort": record["composerSort"]} if record.get("composerSort") else {}),
         "license": record["license"],
         "credits": record["credits"],
         "source": {
@@ -345,30 +347,109 @@ def score_page(entry):
                 score_data(entry))
 
 
+def fold(text):
+    """Text to compare: lower case, without accents."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold()
+
+
+def composer_key(entry):
+    """Surname first. Mutopia's directory for the composer already is
+    ("SchumannR", "BachJS", "BeethovenLv", "RougetdeLisleCJ"); otherwise the
+    record's composerSort, else the last word of the name. Mutopia's directory
+    is only used if its surname is in the name we credit: Mutopia files the
+    Minuet in G under BachJS, which we credit to Petzold."""
+    if entry.get("composerSort"):
+        return fold(entry["composerSort"])
+    if entry["source"]["kind"] == "mutopia":
+        directory = entry["source"]["path"].split("/")[1]
+        surname = re.sub(r"([A-Z][a-z]?)+$", "", directory)
+        if surname and fold(surname) in re.sub(r"[\s-]", "", fold(entry["composer"])):
+            return fold(directory)
+    *given, surname = entry["composer"].split()
+    return fold(" ".join([surname, *given]))
+
+
+def opus_key(opus):
+    """Catalogue numbers in the order publishers list them: opus numbers, then
+    works without one (WoO), then appendices (Anh.), each numerically
+    ("Op. 68 No. 2" before "Op. 68 No. 10"); pieces with no opus last."""
+    if not opus:
+        return (3, "", ())
+    system = re.match(r"\D*", opus).group().strip()
+    numbers = tuple(int(n) for n in re.findall(r"\d+", opus))
+    rank = 2 if "Anh" in system else 1 if system.startswith("WoO") else 0
+    return (rank, fold(system), numbers)
+
+
+def title_key(title):
+    return re.sub(r"^(the|a|an) ", "", fold(title))
+
+
+def ranks(entries, key):
+    """Each entry's position, by id, when sorted by key (ties share a rank)."""
+    values = sorted({key(entry) for entry in entries})
+    return {entry["id"]: values.index(key(entry)) for entry in entries}
+
+
 def library_page(entries):
+    """The table of scores in the default order (composer, opus, title); each
+    row carries its rank for the other orders, which library.js applies when
+    a column's heading is clicked."""
     e = html.escape
-    cards = []
-    for entry in sorted(entries, key=lambda x: (x["composer"], x["title"])):
+    default = lambda x: (composer_key(x), fold(x["composer"]), opus_key(x["opus"]),
+                         title_key(x["title"]))
+    title = ranks(entries, lambda x: title_key(x["title"]))
+    # Across composers, an opus sorts by its catalogue (BWV, K., Op., ...),
+    # then numerically; pieces without one last.
+    opus = ranks(entries, lambda x: (x["opus"] is None, *opus_key(x["opus"])[1:]))
+    rows = []
+    for entry in sorted(entries, key=default):
         search = " ".join([entry["title"], entry["composer"], entry["opus"] or "",
                            *entry["tags"]]).lower()
-        cards.append(f"""
-  <li class="card" data-search="{e(search)}">
-    <a href="{e(entry['page'])}">
-      <span class="title">{e(entry['title'])}</span>
-      <span class="composer">{e(entry['composer'])}{' · ' + e(entry['opus']) if entry['opus'] else ''}</span>
-      <span class="levels">rhythm {entry['difficulty']['rhythm']} · notes {entry['difficulty']['notes']}</span>
-    </a>
-  </li>""")
+        level = entry["difficulty"]
+        catalogue = e(entry["opus"] or "")
+        rows.append(f"""
+    <tr data-search="{e(search)}" data-title="{title[entry['id']]}" data-opus="{opus[entry['id']]}"
+        data-rhythm="{level['rhythm']}" data-notes="{level['notes']}" data-length="{entry['measures']}">
+      <td class="title"><a href="{e(entry['page'])}">{e(entry['title'])}</a>
+        <span class="sub">{e(entry['composer'])}{' · <span>' + catalogue + '</span>' if catalogue else ''}</span></td>
+      <td class="composer">{e(entry['composer'])}</td>
+      <td class="opus">{catalogue}</td>
+      <td class="level">{level['rhythm']}</td>
+      <td class="level">{level['notes']}</td>
+      <td class="bars">{entry['measures']}</td>
+    </tr>""")
+    sortable = lambda key, label, attrs="": (
+        f'<th{attrs} data-sort="{key}"><button type="button">{label}</button></th>')
     body = f"""
 <section class="library">
   <h1>Free scores to play</h1>
   <p class="lead">Public-domain and openly licensed scores, as MusicXML, made for
   <a href="https://orchestrion.app/">Orchestrion</a>: the app where you tap the
   rhythm and the score supplies the notes.</p>
-  <input id="search" type="search" placeholder="Search by title or composer" aria-label="Search">
-  <ul class="cards" id="cards">{''.join(cards)}
-  </ul>
+  <input id="search" type="search" placeholder="Search by title, composer or opus" aria-label="Search">
+  <table class="scores" id="scores">
+    <thead>
+    <tr>
+      {sortable("title", "Title", ' rowspan="2" class="title"')}
+      {sortable("composer", "Composer", ' rowspan="2" class="composer"')}
+      {sortable("opus", "Opus", ' rowspan="2" class="opus"')}
+      {sortable("difficulty", "Difficulty", ' colspan="2" class="level"')}
+      {sortable("length", "Bars", ' rowspan="2" class="bars"')}
+    </tr>
+    <tr>
+      {sortable("rhythm", "Rhythm", ' class="level"')}
+      {sortable("notes", "Notes", ' class="level"')}
+    </tr>
+    </thead>
+    <tbody>{''.join(rows)}
+    </tbody>
+  </table>
   <p class="empty" id="empty" hidden>No score matches.</p>
+  <p class="note">Difficulty from 1 to 9, for rhythm and for notes:
+  <a href="difficulty/">how it is rated</a>. Sorting by Difficulty uses the
+  higher of a score's two levels.</p>
 </section>
 <script src="library.js"></script>"""
     composers = sorted({entry["composer"].split()[-1] for entry in entries})
