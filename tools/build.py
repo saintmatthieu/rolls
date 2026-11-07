@@ -405,12 +405,12 @@ def library_page(entries):
     opus = ranks(entries, lambda x: (x["opus"] is None, *opus_key(x["opus"])[1:]))
     rows = []
     for entry in sorted(entries, key=default):
-        search = " ".join([entry["title"], entry["composer"], entry["opus"] or "",
-                           *entry["tags"]]).lower()
+        search = " ".join([entry["title"], entry["composer"], entry["opus"] or ""]).lower()
+        tags = " ".join(entry["tags"]).lower()
         level = entry["difficulty"]
         catalogue = e(entry["opus"] or "")
         rows.append(f"""
-    <tr data-search="{e(search)}" data-title="{title[entry['id']]}" data-opus="{opus[entry['id']]}"
+    <tr data-search="{e(search)}" data-tags="{e(tags)}" data-title="{title[entry['id']]}" data-opus="{opus[entry['id']]}"
         data-rhythm="{level['rhythm']}" data-notes="{level['notes']}" data-length="{entry['measures']}">
       <td class="title"><a href="{e(entry['page'])}">{e(entry['title'])}</a>
         <span class="sub">{e(entry['composer'])}{' · <span>' + catalogue + '</span>' if catalogue else ''}</span></td>

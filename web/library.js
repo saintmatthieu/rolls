@@ -1,5 +1,6 @@
 // The library's table: rows filtered as the visitor types (every word must
-// appear in a row's title, composer, opus or tags), and sorted by the column
+// match in a row's title, composer, opus or tags, allowing for typos: see
+// matches), and sorted by the column
 // whose heading is clicked (again to reverse). The page lists the rows in the
 // default order (composer, opus, title); the other orders come from the rows'
 // data attributes, ties falling back to the default. The search and the order
@@ -15,16 +16,67 @@
   function fold(text) {
     return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   }
-  rows.forEach(function (row, i) {
-    row.dataset.folded = fold(row.dataset.search);
+  var texts = rows.map(function (row, i) {
     row.dataset.default = i;
+    // Also as German umlauts are written without them: "fuer elise".
+    var umlauts = row.dataset.search.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe")
+      .replace(/ü/g, "ue");
+    var text = fold(row.dataset.search) + " " + fold(umlauts);
+    // Tags only match exactly: shared by most scores ("teaching"), they would
+    // match most abbreviations and typos.
+    return { text: text + " " + fold(row.dataset.tags || ""),
+             words: text.split(/[^a-z0-9]+/).filter(Boolean) };
   });
+
+  // How many typos the start of a word may have to match w (a substitution,
+  // an insertion, a deletion or two letters swapped each count as one): the
+  // edit distance from w to the closest prefix of word.
+  function prefixDistance(w, word) {
+    var m = w.length, n = word.length, d = [], i, j;
+    for (i = 0; i <= m; i++) { d.push([i]); }
+    for (j = 1; j <= n; j++) { d[0][j] = j; }
+    for (i = 1; i <= m; i++) {
+      for (j = 1; j <= n; j++) {
+        var cost = w[i - 1] === word[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+        if (i > 1 && j > 1 && w[i - 1] === word[j - 2] && w[i - 2] === word[j - 1]) {
+          d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+        }
+      }
+    }
+    return Math.min.apply(null, d[m]);
+  }
+
+  // Whether w's letters are in word, in order, from its first: "shu" in
+  // "schumann", "bthvn" in "beethoven".
+  function abbreviates(w, word) {
+    if (w[0] !== word[0]) return false;
+    for (var i = 1, j = 1; i < w.length; i++, j++) {
+      j = word.indexOf(w[i], j);
+      if (j < 0) return false;
+    }
+    return true;
+  }
+
+  // A search word matches a row if the row contains it, or, from 3 letters,
+  // abbreviates one of its words; or, from 5 letters, if the start of one of its words is
+  // within a typo of it (two from 8 letters): "shuman" finds Schumann.
+  // Numbers must be exact: "68" doesn't find 66.
+  function matches(w, row) {
+    if (row.text.indexOf(w) >= 0) return true;
+    if (/\d/.test(w)) return false;
+    var allowed = w.length < 5 ? 0 : w.length < 8 ? 1 : 2;
+    return row.words.some(function (word) {
+      return (w.length >= 3 && abbreviates(w, word)) ||
+        (allowed > 0 && word.length >= w.length - allowed && prefixDistance(w, word) <= allowed);
+    });
+  }
 
   function filter() {
     var words = fold(input.value).split(/\s+/).filter(Boolean);
     var shown = 0;
-    rows.forEach(function (row) {
-      var match = words.every(function (w) { return row.dataset.folded.indexOf(w) >= 0; });
+    rows.forEach(function (row, i) {
+      var match = words.every(function (w) { return matches(w, texts[i]); });
       row.hidden = !match;
       if (match) shown++;
     });
