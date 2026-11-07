@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Serve site (localhost:8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "preLaunchTask": "Build site",
+      "module": "http.server",
+      "args": [
+        "--directory",
+        "${workspaceFolder}/_site",
+        "8000"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Serve site, pages only (localhost:8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "preLaunchTask": "Build pages",
+      "module": "http.server",
+      "args": [
+        "--directory",
+        "${workspaceFolder}/_site",
+        "8000"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}

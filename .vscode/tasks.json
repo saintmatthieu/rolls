@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build site",
+      "type": "process",
+      "command": "${workspaceFolder}/../lilyport/.venv/bin/python",
+      "args": [
+        "tools/build.py",
+        "--lilyport",
+        "${workspaceFolder}/../lilyport",
+        "--schema",
+        "${workspaceFolder}/.cache/musicxml-4.0/musicxml.xsd"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build pages",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/build.py",
+        "--pages-only"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
