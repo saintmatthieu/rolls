@@ -64,6 +64,14 @@ tools/fetch-schema.sh
 python3 -m http.server -d _site
 ```
 
+Converting every score is slow. To work on the pages (`web/`, the HTML in
+`tools/build.py`), write them again from the last build's `_site/index.json`,
+in well under a second:
+
+```sh
+python3 tools/build.py --pages-only
+```
+
 ## Adding a score
 
 Add a record to `catalogue/` in a pull request; the workflow checks that it

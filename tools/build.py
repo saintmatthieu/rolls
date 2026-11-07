@@ -16,6 +16,7 @@ A score that fails a check is left out of the site, and the build fails
 (unless --keep-going), so that nothing unchecked is published.
 
     python3 tools/build.py --lilyport ../lilyport [--schema XSD] [--only ID]
+    python3 tools/build.py --pages-only   # the pages again, from _site/index.json
 
 lilyport's LilyPond is found as lilyport finds it ($LILYPOND, else the newest
 in lilyport's .tools/, else the PATH); convert-ly is taken from beside it.
@@ -483,7 +484,42 @@ def sitemap(entries):
 
 # ---- the build --------------------------------------------------------------
 
+def write_pages(out, entries, model):
+    """Everything but the scores and index.json: the pages and their assets."""
+    for entry in entries:
+        directory = out / entry["page"]
+        if directory.exists():
+            shutil.rmtree(directory)
+        directory.mkdir(parents=True)
+        (directory / "index.html").write_text(score_page(entry), encoding="utf-8")
+    (out / "index.html").write_text(library_page(entries), encoding="utf-8")
+    (out / "difficulty").mkdir(exist_ok=True)
+    (out / "difficulty" / "index.html").write_text(difficulty_page(model), encoding="utf-8")
+    (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
+    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
+                                    encoding="utf-8")
+    for asset in ("style.css", "library.js", "favicon.png"):
+        if (WEB / asset).exists():
+            shutil.copy(WEB / asset, out / asset)
+
+
+def build_pages(args):
+    """Writes the pages again from the index.json of an earlier build, without
+    converting the scores: for work on the pages."""
+    out = Path(args.out).resolve()
+    index = out / "index.json"
+    if not index.exists():
+        raise BuildError(f"no {index}: run a full build first")
+    entries = json.loads(index.read_text(encoding="utf-8"))["scores"]
+    model = json.loads(difficulty.MODEL.read_text(encoding="utf-8"))
+    write_pages(out, entries, model)
+    log(f"pages of {len(entries)} scores written in {out}")
+    return 0
+
+
 def build(args):
+    if args.pages_only:
+        return build_pages(args)
     lilyport = Path(args.lilyport).resolve()
     if not (lilyport / "lilyport" / "__main__.py").exists():
         raise BuildError(f"{lilyport} is not a lilyport checkout")
@@ -533,19 +569,7 @@ def build(args):
     }
     (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1) + "\n",
                                     encoding="utf-8")
-    for entry in entries:
-        directory = out / entry["page"]
-        directory.mkdir(parents=True)
-        (directory / "index.html").write_text(score_page(entry), encoding="utf-8")
-    (out / "index.html").write_text(library_page(entries), encoding="utf-8")
-    (out / "difficulty").mkdir()
-    (out / "difficulty" / "index.html").write_text(difficulty_page(model), encoding="utf-8")
-    (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
-    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
-                                    encoding="utf-8")
-    for asset in ("style.css", "library.js", "favicon.png"):
-        if (WEB / asset).exists():
-            shutil.copy(WEB / asset, out / asset)
+    write_pages(out, entries, model)
 
     log(f"{len(entries)} scores in {out}" +
         (f"; failed: {', '.join(failures)}" if failures else ""))
@@ -554,13 +578,18 @@ def build(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--lilyport", required=True, help="a lilyport checkout")
+    parser.add_argument("--lilyport", help="a lilyport checkout (required unless --pages-only)")
+    parser.add_argument("--pages-only", action="store_true",
+                        help="write the pages again from the existing index.json, "
+                             "without converting the scores")
     parser.add_argument("--out", default=str(ROOT / "_site"))
     parser.add_argument("--schema", help="MusicXML 4.0 musicxml.xsd (tools/fetch-schema.sh)")
     parser.add_argument("--only", nargs="+", metavar="ID", help="build these scores only")
     parser.add_argument("--keep-going", action="store_true",
                         help="publish the scores that pass even if others fail")
     args = parser.parse_args()
+    if not args.pages_only and not args.lilyport:
+        parser.error("--lilyport is required")
     try:
         sys.exit(build(args))
     except BuildError as error:
