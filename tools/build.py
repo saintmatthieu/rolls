@@ -24,6 +24,8 @@ in lilyport's .tools/, else the PATH); convert-ly is taken from beside it.
 Standard library only, except lxml for --schema.
 """
 import argparse
+import contextlib
+import fcntl
 import hashlib
 import html
 import json
@@ -784,6 +786,20 @@ def build(args):
     return 1 if failures and not args.keep_going else 0
 
 
+@contextlib.contextmanager
+def build_lock():
+    """One build at a time: builds share .cache/work/ and the output, and two
+    at once delete each other's files. The system releases the lock when the
+    process ends, however it ends."""
+    CACHE.mkdir(exist_ok=True)
+    with open(CACHE / "build.lock", "w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise BuildError("another build is running (it holds .cache/build.lock)")
+        yield
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--lilyport", help="a lilyport checkout (required unless --pages-only)")
@@ -801,7 +817,8 @@ def main():
     if not args.pages_only and not args.lilyport:
         parser.error("--lilyport is required")
     try:
-        sys.exit(build(args))
+        with build_lock():
+            sys.exit(build(args))
     except BuildError as error:
         log(f"error: {error}")
         sys.exit(1)
