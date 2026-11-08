@@ -47,6 +47,15 @@ jobs:
           lilyport/tools/fetch-lilypond.sh "$LILYPOND_VERSION"
           tools/fetch-schema.sh
 
+      # Earlier conversions (tools/build.py keys each by what shapes it, and
+      # converts again what changed). Saved under the inputs' hash; restored
+      # from the closest earlier run. A pull request's cache stays its own.
+      - uses: actions/cache@v4
+        with:
+          path: .cache/scores
+          key: scores-${{ runner.os }}-${{ hashFiles('pins.env', 'catalogue/**', 'tools/*.py') }}
+          restore-keys: scores-${{ runner.os }}-
+
       - name: Build
         run: python3 tools/build.py --lilyport lilyport --schema .cache/musicxml-4.0/musicxml.xsd
 
