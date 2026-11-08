@@ -133,7 +133,12 @@ def prepare_source(record, repo, convert_ly, work):
     # outside the sparse checkout.
     shutil.copytree(source.parent, work, symlinks=True)
     main = work / source.name
-    for ly in work.glob("*.ly"):
+    # The included files too (.ily, subdirectories): a source's own definitions
+    # may be as old as its music (Hanon's metronome mark, \note #"4").
+    # convert-ly needs a \version; files without one are left as they are.
+    for ly in sorted([*work.rglob("*.ly"), *work.rglob("*.ily")]):
+        if ly.is_symlink() or "\\version" not in ly.read_text(encoding="utf-8", errors="replace"):
+            continue
         result = subprocess.run([str(convert_ly), "-e", str(ly)],
                                 capture_output=True, text=True)
         if result.returncode:
