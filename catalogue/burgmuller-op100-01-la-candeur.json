@@ -1,0 +1,35 @@
+{
+  "title": "25 Easy and Progressive Studies: La Candeur",
+  "composer": "Johann Friedrich Burgmüller",
+  "opus": "Op. 100 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 202,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BurgmullerJFF/O100/25EF-01/25EF-01.ly",
+    "edition": "Collection Litolff, 19th Century"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Bas Wassink"
+    }
+  ],
+  "fixes": [
+    {
+      "file": "25EF-01.ly",
+      "replace": "f8'-5",
+      "with": "f'8-5",
+      "why": "bar 9, an octave mark written after the duration (f8' for f'8)"
+    }
+  ]
+}
