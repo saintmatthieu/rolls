@@ -32,9 +32,11 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import unicodedata
 import zipfile
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -68,8 +70,17 @@ class BuildError(Exception):
     pass
 
 
+# While scores convert in parallel, each thread collects its score's lines,
+# printed together once the score is done.
+_log_lines = threading.local()
+
+
 def log(message):
-    print(message, file=sys.stderr, flush=True)
+    lines = getattr(_log_lines, "lines", None)
+    if lines is not None:
+        lines.append(message)
+    else:
+        print(message, file=sys.stderr, flush=True)
 
 
 def load_catalogue(only=None):
@@ -683,6 +694,35 @@ def build_pages(args):
     return 0
 
 
+def convert_score(record, repo, convert_ly, lilyport, out, model, schema):
+    """Converts one record into out/scores/: its index entry, or None if a
+    step failed (logged)."""
+    mxl = out / "scores" / f"{record['id']}.mxl"
+    try:
+        main = prepare_source(record, repo, convert_ly, CACHE / "work" / record["id"])
+        check_license(record, header_text(main))
+        convert(record, main, lilyport, mxl)
+        # A hash of the document as converted, not of the .mxl, whose zip
+        # has the build's dates, nor of what stamp() writes into it: a new
+        # opus or a recalibrated difficulty doesn't make Orchestrion offer
+        # an update of music that didn't change (it takes them from the
+        # index anyway).
+        version = hashlib.sha256(musicxml_text(mxl)).hexdigest()[:16]
+        levels = {**difficulty.levels(difficulty.measures(mxl), model),
+                  "method": model["method"]}
+        stamp(mxl, record.get("opus"), levels)
+        xml_bytes = musicxml_text(mxl)
+        if schema:
+            check_schema(xml_bytes, schema)
+        entry = index_entry(record, mxl, xml_bytes, version, levels)
+        log("    ok")
+        return entry
+    except (BuildError, subprocess.CalledProcessError, OSError, ET.ParseError) as error:
+        log(f"    FAILED: {error}")
+        mxl.unlink(missing_ok=True)
+        return None
+
+
 def build(args):
     if args.pages_only:
         return build_pages(args)
@@ -708,33 +748,26 @@ def build(args):
     repos = {commit: mutopia_checkout(commit, [r["source"]["path"] for r in group])
              for commit, group in by_commit.items()}
 
-    entries, failures = [], []
-    for record in records:
-        log(f"{record['id']}")
+    def build_score(record):
+        """The score's index entry, or None if it failed; and its log lines."""
+        _log_lines.lines = [record["id"]]
         try:
-            main = prepare_source(record, repos[record["source"]["commit"]], convert_ly,
-                                  CACHE / "work" / record["id"])
-            check_license(record, header_text(main))
-            mxl = out / "scores" / f"{record['id']}.mxl"
-            convert(record, main, lilyport, mxl)
-            # A hash of the document as converted, not of the .mxl, whose zip
-            # has the build's dates, nor of what stamp() writes into it: a new
-            # opus or a recalibrated difficulty doesn't make Orchestrion offer
-            # an update of music that didn't change (it takes them from the
-            # index anyway).
-            version = hashlib.sha256(musicxml_text(mxl)).hexdigest()[:16]
-            levels = {**difficulty.levels(difficulty.measures(mxl), model),
-                      "method": model["method"]}
-            stamp(mxl, record.get("opus"), levels)
-            xml_bytes = musicxml_text(mxl)
-            if args.schema:
-                check_schema(xml_bytes, args.schema)
-            entries.append(index_entry(record, mxl, xml_bytes, version, levels))
-            log(f"    ok")
-        except (BuildError, subprocess.CalledProcessError, OSError, ET.ParseError) as error:
-            log(f"    FAILED: {error}")
-            failures.append(record["id"])
-            (out / "scores" / f"{record['id']}.mxl").unlink(missing_ok=True)
+            return convert_score(record, repos[record["source"]["commit"]], convert_ly,
+                                 lilyport, out, model, args.schema), _log_lines.lines
+        finally:
+            _log_lines.lines = None
+
+    # The work is LilyPond's and lilyport's, in processes of their own: threads
+    # are enough to keep the cores busy. Logs and the index in catalogue order.
+    entries, failures = [], []
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        for record, (entry, lines) in zip(records, pool.map(build_score, records)):
+            for line in lines:
+                log(line)
+            if entry:
+                entries.append(entry)
+            else:
+                failures.append(record["id"])
 
     index = {
         "schemaVersion": SCHEMA_VERSION,
@@ -760,6 +793,8 @@ def main():
     parser.add_argument("--out", default=str(ROOT / "_site"))
     parser.add_argument("--schema", help="MusicXML 4.0 musicxml.xsd (tools/fetch-schema.sh)")
     parser.add_argument("--only", nargs="+", metavar="ID", help="build these scores only")
+    parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1,
+                        help="scores converted at once (default: one per CPU)")
     parser.add_argument("--keep-going", action="store_true",
                         help="publish the scores that pass even if others fail")
     args = parser.parse_args()
