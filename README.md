@@ -68,7 +68,10 @@ tools/fetch-schema.sh
 python3 -m http.server -d _site
 ```
 
-Converting every score is slow. To work on the pages (`web/`, the HTML in
+Converted scores are kept in `.cache/scores/`: a build converts again only
+the scores whose source, record fixes or options, lilyport, LilyPond or
+conversion steps changed (`--no-cache` converts them all). Converting every
+score is slow. To work on the pages (`web/`, the HTML in
 `tools/build.py`), write them again from the last build's `_site/index.json`,
 in well under a second:
 

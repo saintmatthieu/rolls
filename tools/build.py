@@ -19,6 +19,10 @@ A score that fails a check is left out of the site, and the build fails
     python3 tools/build.py --lilyport ../lilyport [--schema XSD] [--only ID]
     python3 tools/build.py --pages-only   # the pages again, from _site/index.json
 
+Converted scores are kept in .cache/scores/, under a key made of everything
+that shapes them (conversion_key()): a score converts again only when one of
+those changed. --no-cache converts them all.
+
 lilyport's LilyPond is found as lilyport finds it ($LILYPOND, else the newest
 in lilyport's .tools/, else the PATH); convert-ly is taken from beside it.
 Standard library only, except lxml for --schema.
@@ -28,6 +32,7 @@ import contextlib
 import fcntl
 import hashlib
 import html
+import inspect
 import json
 import os
 import re
@@ -696,21 +701,90 @@ def build_pages(args):
     return 0
 
 
-def convert_score(record, repo, convert_ly, lilyport, out, model, schema):
-    """Converts one record into out/scores/: its index entry, or None if a
-    step failed (logged)."""
+SCORE_CACHE = CACHE / "scores"
+
+
+def tools_fingerprint(lilyport, lilypond):
+    """What the conversion depends on beside the record: lilyport's files as
+    they are (a checkout may have changes not committed), LilyPond's version
+    (convert-ly's with it), and Rolls' own steps of the conversion."""
+    digest = hashlib.sha256()
+    for path in sorted((lilyport / "lilyport").rglob("*")):
+        if path.is_file() and path.suffix in (".py", ".ly", ".scm"):
+            digest.update(str(path.relative_to(lilyport)).encode())
+            digest.update(path.read_bytes())
+    version = subprocess.run([str(lilypond), "--version"], capture_output=True, text=True)
+    digest.update(version.stdout.split("\n", 1)[0].encode())
+    for step in (prepare_source, convert, check_license, header_text):
+        digest.update(inspect.getsource(step).encode())
+    digest.update(json.dumps(LICENSE_TEXT, sort_keys=True).encode())
+    return digest.hexdigest()
+
+
+def conversion_key(record, tools):
+    """The record's part in its conversion (not its title, composer, opus,
+    credits: those don't change the converted music), with the tools'."""
+    shaping = {"source": {k: record["source"].get(k) for k in ("kind", "commit", "path")},
+               "license": record["license"]["name"],
+               "fixes": record.get("fixes", []),
+               "lilyport": record.get("lilyport", {}),
+               "tools": tools}
+    return hashlib.sha256(json.dumps(shaping, sort_keys=True).encode()).hexdigest()
+
+
+# The measures depend on the converted score and on how difficulty.py
+# measures; the levels, from them and the model, are computed at every build.
+DIFFICULTY_CODE = hashlib.sha256(Path(difficulty.__file__).read_bytes()).hexdigest()
+
+
+def score_measures(mxl, key, use_cache):
+    """difficulty.measures() of the score, kept beside its conversion."""
+    path = SCORE_CACHE / f"{key}.measures.json"
+    if use_cache and path.exists():
+        kept = json.loads(path.read_text(encoding="utf-8"))
+        if kept.get("difficulty") == DIFFICULTY_CODE:
+            return kept["measures"]
+    measures = difficulty.measures(mxl)
+    if (SCORE_CACHE / f"{key}.mxl").exists():
+        path.write_text(json.dumps({"difficulty": DIFFICULTY_CODE, "measures": measures}),
+                        encoding="utf-8")
+    return measures
+
+
+def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, use_cache):
+    """Converts one record into out/scores/, or copies its earlier conversion
+    from the cache: its index entry, or None if a step failed (logged).
+    Failures aren't cached, so that they are tried again."""
     mxl = out / "scores" / f"{record['id']}.mxl"
+    cached = SCORE_CACHE / f"{key}.mxl"
     try:
-        main = prepare_source(record, repo, convert_ly, CACHE / "work" / record["id"])
-        check_license(record, header_text(main))
-        convert(record, main, lilyport, mxl)
+        if use_cache and cached.exists():
+            shutil.copyfile(cached, mxl)
+            # The conversion's warnings, as when it ran.
+            notes = SCORE_CACHE / f"{key}.log"
+            for line in (notes.read_text(encoding="utf-8").splitlines() if notes.exists() else []):
+                log(line)
+            log("    (cached)")
+        else:
+            main = prepare_source(record, repo, convert_ly, CACHE / "work" / record["id"])
+            check_license(record, header_text(main))
+            first = len(_log_lines.lines)
+            convert(record, main, lilyport, mxl)
+            # Kept before stamp() writes into it: the opus and levels are
+            # written in at every build.
+            SCORE_CACHE.mkdir(parents=True, exist_ok=True)
+            partial = SCORE_CACHE / f"{key}.part"
+            (SCORE_CACHE / f"{key}.log").write_text(
+                "".join(line + "\n" for line in _log_lines.lines[first:]), encoding="utf-8")
+            shutil.copyfile(mxl, partial)
+            os.replace(partial, cached)
         # A hash of the document as converted, not of the .mxl, whose zip
         # has the build's dates, nor of what stamp() writes into it: a new
         # opus or a recalibrated difficulty doesn't make Orchestrion offer
         # an update of music that didn't change (it takes them from the
         # index anyway).
         version = hashlib.sha256(musicxml_text(mxl)).hexdigest()[:16]
-        levels = {**difficulty.levels(difficulty.measures(mxl), model),
+        levels = {**difficulty.levels(score_measures(mxl, key, use_cache), model),
                   "method": model["method"]}
         stamp(mxl, record.get("opus"), levels)
         xml_bytes = musicxml_text(mxl)
@@ -742,11 +816,18 @@ def build(args):
         shutil.rmtree(out)
     (out / "scores").mkdir(parents=True)
 
+    tools = tools_fingerprint(lilyport, lilypond)
+    keys = {record["id"]: conversion_key(record, tools) for record in records}
+    use_cache = not args.no_cache
+    # Only the sources of the scores to convert are fetched.
     by_commit = {}
     for record in records:
         if record["source"]["kind"] != "mutopia":
             raise BuildError(f"{record['id']}: unknown source kind {record['source']['kind']}")
-        by_commit.setdefault(record["source"]["commit"], []).append(record)
+        if not (use_cache and (SCORE_CACHE / f"{keys[record['id']]}.mxl").exists()):
+            by_commit.setdefault(record["source"]["commit"], []).append(record)
+    log(f"{len(records) - sum(map(len, by_commit.values()))} scores from the cache, "
+        f"{sum(map(len, by_commit.values()))} to convert")
     repos = {commit: mutopia_checkout(commit, [r["source"]["path"] for r in group])
              for commit, group in by_commit.items()}
 
@@ -754,8 +835,9 @@ def build(args):
         """The score's index entry, or None if it failed; and its log lines."""
         _log_lines.lines = [record["id"]]
         try:
-            return convert_score(record, repos[record["source"]["commit"]], convert_ly,
-                                 lilyport, out, model, args.schema), _log_lines.lines
+            return convert_score(record, repos.get(record["source"]["commit"]), convert_ly,
+                                 lilyport, out, model, args.schema, keys[record["id"]],
+                                 use_cache), _log_lines.lines
         finally:
             _log_lines.lines = None
 
@@ -770,6 +852,14 @@ def build(args):
                 entries.append(entry)
             else:
                 failures.append(record["id"])
+
+    # What the catalogue no longer uses (a record changed, a tool updated):
+    # after a build of the whole catalogue only, which knows all the keys.
+    if not args.only and SCORE_CACHE.exists():
+        used = set(keys.values())
+        for path in SCORE_CACHE.iterdir():
+            if path.name.split(".")[0] not in used:
+                path.unlink()
 
     index = {
         "schemaVersion": SCHEMA_VERSION,
@@ -811,6 +901,9 @@ def main():
     parser.add_argument("--only", nargs="+", metavar="ID", help="build these scores only")
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1,
                         help="scores converted at once (default: one per CPU)")
+    parser.add_argument("--no-cache", action="store_true",
+                        help="convert every score, not taking earlier conversions from "
+                             ".cache/scores/ (still kept there)")
     parser.add_argument("--keep-going", action="store_true",
                         help="publish the scores that pass even if others fail")
     args = parser.parse_args()
