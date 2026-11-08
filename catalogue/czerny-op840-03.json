@@ -1,0 +1,27 @@
+{
+  "title": "50 Melodious Practice Pieces",
+  "composer": "Carl Czerny",
+  "opus": "Op. 840 No. 3",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2148,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/CzernyC/O840/op840-3/op840-3-lys/czerny-op840-3.ly",
+    "edition": "Schott, Mainz, 1855"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Manuela"
+    }
+  ]
+}
