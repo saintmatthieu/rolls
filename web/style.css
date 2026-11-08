@@ -23,6 +23,9 @@
   }
 }
 * { box-sizing: border-box; }
+/* Room for the scrollbar on every page, long or short: otherwise the
+   centred frame moves by half its width from the library to a score. */
+html { scrollbar-gutter: stable; }
 body {
   margin: 0;
   background: var(--bg);
@@ -31,11 +34,23 @@ body {
   line-height: 1.6;
 }
 a { color: var(--link); }
-header.site, main, footer.site { max-width: 52rem; margin: 0 auto; padding: 0 16px; }
+/* One frame for every page, so that the header doesn't move from page to
+   page: as wide as the library's table may be (72rem of content), or the
+   screen. Text keeps a readable width inside it, from its left edge. */
+header.site, main, footer.site { max-width: calc(72rem + 32px); margin: 0 auto; padding: 0 16px; }
+article.score, article.about, footer.site p { max-width: 50rem; }
 header.site {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem;
-  padding-top: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line);
+  padding-top: 1.25rem; padding-bottom: 1rem;
 }
+/* The rules under the header and over the footer span the frame's content,
+   not its side padding: as wide as the library's table. */
+header.site, footer.site {
+  background: linear-gradient(var(--line), var(--line)) no-repeat;
+  background-size: calc(100% - 32px) 1px;
+}
+header.site { background-position: center bottom; }
+footer.site { background-position: center top; }
 .brand { font-size: 1.6rem; font-weight: bold; color: var(--fg); text-decoration: none; }
 .tagline { color: var(--muted); }
 /* "Rolls — a score library…" on one line; on a phone, where the tagline
@@ -48,15 +63,7 @@ h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
   width: 100%; margin: 1rem 0; padding: 0.6rem 0.8rem; font: inherit;
   color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px;
 }
-/* The library page takes its table's width, which may exceed the text
-   column's: at least that column, at most 72rem or the screen. Header and
-   footer follow it (contain: their own text doesn't widen the page). */
-body:has(.library) { width: max-content; min-width: min(52rem, 100%);
-  max-width: min(72rem + 32px, 100%); margin: 0 auto; }
-body:has(.library) > header.site, body:has(.library) > main,
-body:has(.library) > footer.site { max-width: none; }
-body:has(.library) > header.site, body:has(.library) > footer.site { contain: inline-size; }
-.scores { min-width: 100%; border-collapse: collapse; background: var(--card);
+.scores { width: 100%; border-collapse: collapse; background: var(--card);
   border: 1px solid var(--line); }
 .scores th, .scores td { padding: 0.45rem 0.6rem; text-align: left; vertical-align: baseline;
   border-bottom: 1px solid var(--line); }
@@ -102,7 +109,7 @@ body:has(.library) > header.site, body:has(.library) > footer.site { contain: in
 .button.primary { background: var(--gold); color: var(--espresso); font-weight: bold; }
 .button.primary:hover { background: var(--gold-bright); }
 .credits { padding-left: 1.2rem; margin-top: 1.5rem; }
-footer.site { border-top: 1px solid var(--line); padding-top: 1rem; padding-bottom: 2rem;
+footer.site { padding-top: 1rem; padding-bottom: 2rem;
   color: var(--muted); font-size: 0.9rem; }
 .levels { margin: 0.25rem 0; }
 .levels .scale { color: var(--muted); }
