@@ -5,7 +5,8 @@ For each record catalogue/<id>.json: fetch its source (a Mutopia piece at the
 pinned MutopiaProject commit), update it with convert-ly, convert it to
 MusicXML with lilyport, check the result, and write
 
-    _site/scores/<id>.mxl     the score
+    _site/scores/<id>.mxl     the score, with its opus and difficulty written
+                              in for Orchestrion (stamp())
     _site/s/<id>/index.html   its page
     _site/index.json          the catalogue for Orchestrion and the web UI
     _site/index.html          the library page
@@ -181,6 +182,72 @@ def musicxml_text(mxl):
         return archive.read(rootfile.get("full-path"))
 
 
+# What the score says about itself for Orchestrion, beside the index: so that
+# a copy of it anywhere (a folder of scores, a download) shows its opus and
+# difficulty in Orchestrion's shelf. Orchestrion reads these names.
+DIFFICULTY_FIELDS = {
+    "rhythm": "orchestrion-difficulty-rhythm",
+    "notes": "orchestrion-difficulty-notes",
+    "method": "orchestrion-difficulty-method",
+}
+
+
+def stamp_document(xml_bytes, opus, levels):
+    """The score with the catalogue's opus as its work number and the
+    difficulty levels as miscellaneous fields of its identification. Edited
+    as text, not reserialized, so that the rest of the document stays as
+    lilyport wrote it. Stamping again replaces what an earlier stamp wrote
+    (Orchestrion stamps its bundled scores with it too)."""
+    text = xml_bytes.decode("utf-8")
+    esc = lambda value: html.escape(str(value), quote=False)
+
+    if opus:
+        number = f"<work-number>{esc(opus)}</work-number>"
+        if re.search(r"<work-number>.*?</work-number>", text, re.S):
+            text = re.sub(r"<work-number>.*?</work-number>", lambda m: number, text,
+                          count=1, flags=re.S)
+        elif "<work>" in text:  # work-number comes first in a work
+            text = text.replace("<work>", "<work>" + number, 1)
+        else:  # a work comes first in a score
+            text = re.sub(r"(<score-partwise\b[^>]*>)", lambda m: m.group(1) +
+                          f"<work>{number}</work>", text, count=1)
+
+    # Those of an earlier stamp go, leaving the text around them as it was:
+    # stamping again gives the same document.
+    for name in DIFFICULTY_FIELDS.values():
+        text = re.sub(rf'<miscellaneous-field name="{name}">[^<]*</miscellaneous-field>',
+                      "", text)
+    text = re.sub(r"<miscellaneous>\s*</miscellaneous>", "", text)
+    fields = "".join(f'<miscellaneous-field name="{DIFFICULTY_FIELDS[key]}">'
+                     f"{esc(levels[key])}</miscellaneous-field>"
+                     for key in ("rhythm", "notes", "method"))
+    if "</miscellaneous>" in text:
+        text = text.replace("</miscellaneous>", fields + "</miscellaneous>", 1)
+    elif "</identification>" in text:  # miscellaneous comes last
+        text = text.replace("</identification>",
+                            f"<miscellaneous>{fields}</miscellaneous></identification>", 1)
+    else:
+        raise BuildError("the score has no <identification> to hold its difficulty")
+    return text.encode("utf-8")
+
+
+def stamp(mxl, opus, levels):
+    """Rewrites the compressed MusicXML with stamp_document()'s score, its
+    other entries as they were (mimetype first and stored, as MXL wants)."""
+    with zipfile.ZipFile(mxl) as archive:
+        container = ET.fromstring(archive.read("META-INF/container.xml"))
+        rootfile = next(e for e in container.iter() if e.tag.endswith("rootfile"))
+        root_path = rootfile.get("full-path")
+        entries = [(info, archive.read(info)) for info in archive.infolist()]
+    stamped = mxl.with_suffix(".stamped")
+    with zipfile.ZipFile(stamped, "w") as archive:
+        for info, data in entries:
+            if info.filename == root_path:
+                data = stamp_document(data, opus, levels)
+            archive.writestr(info, data)
+    stamped.replace(mxl)
+
+
 def check_schema(xml_bytes, schema):
     from lxml import etree
     validator = etree.XMLSchema(etree.parse(str(schema)))
@@ -206,7 +273,7 @@ def measures(xml_bytes):
     }
 
 
-def index_entry(record, mxl, xml_bytes, model):
+def index_entry(record, mxl, xml_bytes, version, levels):
     source = record["source"]
     entry = {
         "id": record["id"],
@@ -225,18 +292,14 @@ def index_entry(record, mxl, xml_bytes, model):
         # Relative to index.json, so that the site works under any address.
         "musicxml": f"scores/{record['id']}.mxl",
         "page": f"s/{record['id']}/",
-        # Orchestrion downloads the score again when this changes: a hash
-        # of the document, not of the .mxl, whose zip has the build's dates.
-        "version": hashlib.sha256(xml_bytes).hexdigest()[:16],
+        # Orchestrion downloads the score again when this changes (see
+        # build()).
+        "version": version,
         "size": mxl.stat().st_size,
         **measures(xml_bytes),
         # Levels on a 1-9 scale calibrated to Henle's, for Orchestrion's two
         # ways of playing; "about" (relative) explains how they are rated.
-        "difficulty": {
-            **difficulty.levels(difficulty.measures(mxl), model),
-            "method": model["method"],
-            "about": "difficulty/",
-        },
+        "difficulty": {**levels, "about": "difficulty/"},
     }
     if source["kind"] == "mutopia":
         entry["source"].update({
@@ -631,10 +694,19 @@ def build(args):
             check_license(record, header_text(main))
             mxl = out / "scores" / f"{record['id']}.mxl"
             convert(record, main, lilyport, mxl)
+            # A hash of the document as converted, not of the .mxl, whose zip
+            # has the build's dates, nor of what stamp() writes into it: a new
+            # opus or a recalibrated difficulty doesn't make Orchestrion offer
+            # an update of music that didn't change (it takes them from the
+            # index anyway).
+            version = hashlib.sha256(musicxml_text(mxl)).hexdigest()[:16]
+            levels = {**difficulty.levels(difficulty.measures(mxl), model),
+                      "method": model["method"]}
+            stamp(mxl, record.get("opus"), levels)
             xml_bytes = musicxml_text(mxl)
             if args.schema:
                 check_schema(xml_bytes, args.schema)
-            entries.append(index_entry(record, mxl, xml_bytes, model))
+            entries.append(index_entry(record, mxl, xml_bytes, version, levels))
             log(f"    ok")
         except (BuildError, subprocess.CalledProcessError, OSError, ET.ParseError) as error:
             log(f"    FAILED: {error}")

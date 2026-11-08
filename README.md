@@ -23,8 +23,12 @@ elsewhere.
   `index.json`, and `sitemap.xml` and `robots.txt` for search engines.
 - `index.json` is what Orchestrion and the web pages read. It has a
   `schemaVersion`; URLs in it are relative to it; each score's `version` is a
-  hash of its MusicXML, so Orchestrion downloads a score again only when it
-  changed.
+  hash of its MusicXML as lilyport wrote it, so Orchestrion downloads a score
+  again only when its music changed.
+- Each score also carries its opus (`<work-number>`) and difficulty
+  (`<miscellaneous-field>`s `orchestrion-difficulty-rhythm`, `-notes` and
+  `-method`), written in after conversion, so that Orchestrion shows them for
+  a copy of the score anywhere, not only for those it downloaded.
 - `pins.env` pins lilyport and LilyPond. The workflow builds and deploys on
   every push to `main`; generated files are never committed.
 
