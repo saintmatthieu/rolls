@@ -451,7 +451,10 @@ def opus_key(opus):
 
 
 def title_key(title):
-    return re.sub(r"^(the|a|an) ", "", fold(title))
+    """Without a leading article, numbers in numeric order ("Exercise 2"
+    before "Exercise 10")."""
+    text = re.sub(r"^(the|a|an) ", "", fold(title))
+    return re.sub(r"\d+", lambda m: m.group().zfill(6), text)
 
 
 def ranks(entries, key):
