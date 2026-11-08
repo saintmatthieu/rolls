@@ -1,0 +1,30 @@
+{
+  "title": "Album for the Young: Melody",
+  "composer": "Robert Schumann",
+  "opus": "Op. 68 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 647,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchumannR/O68/schumann-op68-01-melodie/schumann-op68-01-melodie.ly",
+    "edition": "Peters"
+  },
+  "license": {
+    "name": "CC BY-SA 2.5",
+    "url": "https://creativecommons.org/licenses/by-sa/2.5/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Philippe Hézaine"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=76"
+  }
+}

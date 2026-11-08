@@ -1,0 +1,30 @@
+{
+  "title": "Album for the Young: Humming Song",
+  "composer": "Robert Schumann",
+  "opus": "Op. 68 No. 3",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 651,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchumannR/O68/schumann-op68-03-chanson-fredonnee/schumann-op68-03-chanson-fredonnee.ly",
+    "edition": "Peters"
+  },
+  "license": {
+    "name": "CC BY-SA 3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Philippe Hézaine"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=70"
+  }
+}
