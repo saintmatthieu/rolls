@@ -1,0 +1,30 @@
+{
+  "title": "28 Melodious Exercises (Primo)",
+  "composer": "Anton Diabelli",
+  "opus": "Op. 149 No. 9",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 415,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/DiabelliA/O149/op149-9/op149-9.ly"
+  },
+  "license": {
+    "name": "CC BY-SA 3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Alberto Simões"
+    }
+  ],
+  "lilyport": {
+    "score": 2,
+    "tempo": "4=120"
+  }
+}
