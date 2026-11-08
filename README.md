@@ -81,6 +81,18 @@ python3 tools/build.py --pages-only
 Add a record to `catalogue/` in a pull request; the workflow checks that it
 converts and validates.
 
+A source with an error that LilyPond now refuses can be corrected in its
+record, after `convert-ly`; the score's page says what was corrected:
+
+```json
+"fixes": [{"file": "25EF-01.ly", "replace": "f8'-5", "with": "f'8-5",
+           "why": "bar 9, an octave mark after the duration (f8' for f'8)"}]
+```
+
+`replace` must occur exactly once in the file, so that a change of the
+source stops the build rather than going unnoticed. Prefer fixing the source
+upstream too.
+
 ## Licence
 
 The code is GPL-3.0-or-later. Each score keeps the licence of its source

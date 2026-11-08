@@ -124,8 +124,9 @@ def mutopia_checkout(commit, paths):
 
 
 def prepare_source(record, repo, convert_ly, work):
-    """Copies the piece's directory into work/ and updates the copy with
-    convert-ly; returns the main file to convert."""
+    """Copies the piece's directory into work/, updates the copy with
+    convert-ly and applies the record's fixes; returns the main file to
+    convert."""
     source = repo / record["source"]["path"]
     if work.exists():
         shutil.rmtree(work)
@@ -143,6 +144,16 @@ def prepare_source(record, repo, convert_ly, work):
                                 capture_output=True, text=True)
         if result.returncode:
             raise BuildError(f"convert-ly failed on {ly.name}:\n{result.stderr}")
+    # Errors in the source that LilyPond now refuses, corrected after
+    # convert-ly. Each must match once, so that a change of the source shows.
+    for fix in record.get("fixes", []):
+        path = work / fix["file"]
+        text = path.read_text(encoding="utf-8")
+        count = text.count(fix["replace"])
+        if count != 1:
+            raise BuildError(f"fix in {fix['file']}: {fix['replace']!r} found {count} times, "
+                             "not once")
+        path.write_text(text.replace(fix["replace"], fix["with"]), encoding="utf-8")
     return main
 
 
@@ -294,6 +305,8 @@ def index_entry(record, mxl, xml_bytes, version, levels):
             "kind": source["kind"],
             "edition": source.get("edition"),
         },
+        # What we corrected in the source, said on the score's page.
+        **({"corrections": [fix["why"] for fix in record["fixes"]]} if record.get("fixes") else {}),
         # Relative to index.json, so that the site works under any address.
         "musicxml": f"scores/{record['id']}.mxl",
         "page": f"s/{record['id']}/",
@@ -374,6 +387,8 @@ def credit_lines(entry):
     lines = [f"{e(c['role'])} {e(c['name'])}" for c in entry["credits"]]
     if entry["source"].get("edition"):
         lines.append(f"After {e(entry['source']['edition'])}")
+    for correction in entry.get("corrections", []):
+        lines.append(f"Corrected from the source: {e(correction)}")
     license_ = entry["license"]
     lines.append(f'Licence: <a href="{e(license_["url"])}">{e(license_["name"])}</a>')
     if entry["source"].get("url"):
