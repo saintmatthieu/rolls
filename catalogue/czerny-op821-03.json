@@ -1,0 +1,30 @@
+{
+  "title": "160 Eight-Measure Exercises",
+  "composer": "Carl Czerny",
+  "opus": "Op. 821 No. 3",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2062,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/CzernyC/Op_821/Czerny_Op_821_No_003/Czerny_Op_821_No_003.ly",
+    "edition": "Edition Peters, Leipzig, 1888"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Manuel Castejon Limas"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=110"
+  }
+}
