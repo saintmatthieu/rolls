@@ -33,11 +33,14 @@ body {
 a { color: var(--link); }
 header.site, main, footer.site { max-width: 52rem; margin: 0 auto; padding: 0 16px; }
 header.site {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem;
   padding-top: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line);
 }
 .brand { font-size: 1.6rem; font-weight: bold; color: var(--fg); text-decoration: none; }
 .tagline { color: var(--muted); }
+/* "Rolls — a score library…" on one line; on a phone, where the tagline
+   goes under the name, without the dash. */
+@media (min-width: 22rem) { .tagline::before { content: "— "; } }
 main { padding-top: 1.5rem; padding-bottom: 2rem; }
 h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
 .lead { color: var(--muted); max-width: 40rem; }

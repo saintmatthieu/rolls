@@ -529,8 +529,9 @@ def library_page(entries):
     body = f"""
 <section class="library">
   <h1>Free scores to play</h1>
-  <p class="lead">Public-domain and openly licensed scores, as MusicXML, made for
-  <a href="https://orchestrion.app/">Orchestrion</a>.</p>
+  <p class="lead">{len(entries)} public-domain and openly licensed scores, as MusicXML,
+  each rated for <a href="difficulty/">rhythm and notes difficulty</a>, from first
+  pieces to concert repertoire.</p>
   <input id="search" type="search" placeholder="Search by title, composer or opus" aria-label="Search">
   <table class="scores" id="scores">
     <thead>
