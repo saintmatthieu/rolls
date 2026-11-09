@@ -7,6 +7,7 @@ MusicXML with lilyport, check the result, and write
 
     _site/scores/<id>.mxl     the score, with its opus and difficulty written
                               in for Orchestrion (stamp())
+    _site/previews/<id>.svg   its first system, for its page
     _site/s/<id>/index.html   its page
     _site/index.json          the catalogue for Orchestrion and the web UI
     _site/index.html          the library page
@@ -52,6 +53,7 @@ import difficulty
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
 WEB = ROOT / "web"
+PREVIEW_LY = ROOT / "tools" / "preview.ly"
 SITE_URL = "https://rolls.orchestrion.app/"
 MUTOPIA_GIT = "https://github.com/MutopiaProject/MutopiaProject.git"
 MUTOPIA_PAGE = "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id={}"
@@ -206,6 +208,31 @@ def convert(record, main, lilyport, output):
         log(f"    {line}")
     if result.returncode:
         raise BuildError("lilyport failed")
+
+
+def render_preview(record, main, lilypond, lilyport, output):
+    """The score's first system, engraved from its source by LilyPond, as an
+    SVG with a transparent background (the page sets what's behind it). The
+    Cairo backend draws text as outlines: an SVG in an <img> can't load fonts."""
+    stem = main.parent / "rolls-preview"
+    compat = lilyport / "lilyport" / "frontend" / "compat.ly"
+    command = [str(lilypond), "-dbackend=cairo", "-dpreview", "-dno-print-pages", "--svg",
+               "-dno-point-and-click", f"-dinclude-settings={compat}",
+               f"-dinclude-settings={PREVIEW_LY}", "-o", str(stem), main.name]
+    environment = dict(os.environ,
+                       ROLLS_PREVIEW_SCORE=str(record.get("lilyport", {}).get("score", 1)))
+    result = subprocess.run(command, cwd=main.parent, capture_output=True, text=True,
+                            env=environment)
+    rendered = stem.with_name(stem.name + ".preview.svg")
+    if result.returncode or not rendered.exists():
+        raise BuildError(f"the preview failed:\n{result.stderr[-500:]}")
+    os.replace(rendered, output)
+
+
+def svg_size(path):
+    """An SVG's width and height, from its root element."""
+    root = ET.parse(path).getroot()
+    return int(float(root.get("width"))), int(float(root.get("height")))
 
 
 def musicxml_text(mxl):
@@ -415,8 +442,18 @@ def credit_lines(entry):
     return lines
 
 
-def score_page(entry):
+def score_page(entry, preview_size):
+    """The score's page; preview_size is its preview's (width, height), None
+    if it has no preview (--pages-only after a build from before previews)."""
     e = html.escape
+    preview = ""
+    if preview_size:
+        width, height = preview_size
+        preview = (f'<figure class="preview"><span class="music">'
+                   f'<img src="../../previews/{e(entry["id"])}.svg" '
+                   f'width="{width}" height="{height}" alt="The opening bars of '
+                   f'{e(full_title(entry))} by {e(entry["composer"])}"></span>'
+                   '<span class="curl"></span></figure>')
     facts = " · ".join(x for x in (entry["instrument"], f"{entry['measures']} bars",
                                    f"{entry['staves']} staves") if x)
     credits = "".join(f"<li>{line}</li>" for line in credit_lines(entry))
@@ -431,6 +468,7 @@ def score_page(entry):
   <p class="composer">{e(entry['composer'])}</p>
   <p class="facts">{e(facts)}</p>
   {levels}
+  {preview}
   <div class="actions">
     <a class="button primary" href="https://orchestrion.app/">Play it in Orchestrion</a>
     <a class="button" href="../../{e(entry['musicxml'])}" download>Download MusicXML</a>
@@ -677,14 +715,16 @@ def write_pages(out, entries, model):
         if directory.exists():
             shutil.rmtree(directory)
         directory.mkdir(parents=True)
-        (directory / "index.html").write_text(score_page(entry), encoding="utf-8")
+        preview = out / "previews" / f"{entry['id']}.svg"
+        (directory / "index.html").write_text(
+            score_page(entry, svg_size(preview) if preview.exists() else None), encoding="utf-8")
     (out / "index.html").write_text(library_page(entries), encoding="utf-8")
     (out / "difficulty").mkdir(exist_ok=True)
     (out / "difficulty" / "index.html").write_text(difficulty_page(model), encoding="utf-8")
     (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
                                     encoding="utf-8")
-    for asset in ("style.css", "library.js", "favicon.png"):
+    for asset in ("style.css", "library.js", "favicon.png", "paper.svg"):
         if (WEB / asset).exists():
             shutil.copy(WEB / asset, out / asset)
 
@@ -737,6 +777,14 @@ def conversion_key(record, tools):
 # The measures depend on the converted score and on how difficulty.py
 # measures; the levels, from them and the model, are computed at every build.
 DIFFICULTY_CODE = hashlib.sha256(Path(difficulty.__file__).read_bytes()).hexdigest()
+# Likewise the previews, on their conversion's key (same source, same LilyPond)
+# and how they are drawn, which needn't convert the scores again.
+PREVIEW_CODE = hashlib.sha256(PREVIEW_LY.read_bytes() +
+                              inspect.getsource(render_preview).encode()).hexdigest()[:16]
+
+
+def cached_preview(key):
+    return SCORE_CACHE / f"{key}.{PREVIEW_CODE}.svg"
 
 
 def score_measures(mxl, key, use_cache):
@@ -759,6 +807,8 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
     Failures aren't cached, so that they are tried again."""
     mxl = out / "scores" / f"{record['id']}.mxl"
     cached = SCORE_CACHE / f"{key}.mxl"
+    preview = cached_preview(key)
+    main = None
     try:
         if use_cache and cached.exists():
             shutil.copyfile(cached, mxl)
@@ -792,6 +842,12 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
         xml_bytes = musicxml_text(mxl)
         if schema:
             check_schema(xml_bytes, schema)
+        if not (use_cache and preview.exists()):
+            SCORE_CACHE.mkdir(parents=True, exist_ok=True)
+            work = CACHE / "work" / record["id"]
+            render_preview(record, main or prepare_source(record, repo, convert_ly, work),
+                           convert_ly.with_name("lilypond"), lilyport, preview)
+        shutil.copyfile(preview, out / "previews" / f"{record['id']}.svg")
         entry = index_entry(record, mxl, xml_bytes, version, levels)
         log("    ok")
         return entry
@@ -817,6 +873,7 @@ def build(args):
     if out.exists():
         shutil.rmtree(out)
     (out / "scores").mkdir(parents=True)
+    (out / "previews").mkdir()
 
     tools = tools_fingerprint(lilyport, lilypond)
     keys = {record["id"]: conversion_key(record, tools) for record in records}
@@ -826,10 +883,12 @@ def build(args):
     for record in records:
         if record["source"]["kind"] != "mutopia":
             raise BuildError(f"{record['id']}: unknown source kind {record['source']['kind']}")
-        if not (use_cache and (SCORE_CACHE / f"{keys[record['id']]}.mxl").exists()):
+        key = keys[record["id"]]
+        if not (use_cache and (SCORE_CACHE / f"{key}.mxl").exists()
+                and cached_preview(key).exists()):
             by_commit.setdefault(record["source"]["commit"], []).append(record)
     log(f"{len(records) - sum(map(len, by_commit.values()))} scores from the cache, "
-        f"{sum(map(len, by_commit.values()))} to convert")
+        f"{sum(map(len, by_commit.values()))} from their source")
     repos = {commit: mutopia_checkout(commit, [r["source"]["path"] for r in group])
              for commit, group in by_commit.items()}
 
@@ -860,7 +919,8 @@ def build(args):
     if not args.only and SCORE_CACHE.exists():
         used = set(keys.values())
         for path in SCORE_CACHE.iterdir():
-            if path.name.split(".")[0] not in used:
+            if (path.name.split(".")[0] not in used
+                    or (path.suffix == ".svg" and path != cached_preview(path.name.split(".")[0]))):
                 path.unlink()
 
     index = {

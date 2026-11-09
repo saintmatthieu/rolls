@@ -116,6 +116,56 @@ h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 0.5rem; }
 .crumb { margin: 0 0 1rem; }
 .score .composer { font-size: 1.15rem; margin: 0; }
 .facts, .hint { color: var(--muted); }
+/* The preview as a piece of Orchestrion's roll, with the app's colours and
+   proportions: the paper (the same in both themes: the notation is black, on a
+   transparent background) lies on two gold rollers, showing above and below
+   it, and curls away on the right, over the music. */
+.preview {
+  --roller: clamp(1rem, 4vw, 1.9rem);
+  --roller-length: calc(var(--roller) * 2.05);
+  --curl: clamp(1.4rem, 7vw, 3.4rem);
+  --rivet-colours: #eccc7d, #e4b94e 1.4px, #ae8d41 2.4px, rgb(120 100 60 / 0.35) 3px, transparent 3.6px;
+  position: relative;
+  margin: 1.75rem 0 0.75rem var(--roller);
+  padding: 0.7rem 0 0.7rem 1rem;
+  border: 1px solid #cbc2a9;
+  border-radius: 3px;
+  background:
+    /* A rivet on each edge of each tile: evenly spaced, from the first to the last. */
+    radial-gradient(circle at 3px 0, var(--rivet-colours))
+      calc(3px - 1rem) 0 / 7px 2rem no-repeat round content-box border-box,
+    radial-gradient(circle at 3px 100%, var(--rivet-colours))
+      calc(3px - 1rem) 0 / 7px 2rem no-repeat round content-box border-box,
+    url("paper.svg"),
+    #fcf0d2;
+}
+.preview::before, .preview::after {
+  content: ""; position: absolute; z-index: -1;
+  top: -7px; bottom: -7px; width: var(--roller-length); border-radius: 4px;
+  background:
+    /* The barrel turning away at its ends, as it does at its sides. */
+    linear-gradient(to bottom, rgb(28 20 8 / 0.7), rgb(28 20 8 / 0.4) 1px, rgb(28 20 8 / 0.16) 2px,
+                    rgb(28 20 8 / 0.04) 3px, transparent 3.5px,
+                    transparent calc(100% - 3.5px), rgb(28 20 8 / 0.04) calc(100% - 3px),
+                    rgb(28 20 8 / 0.16) calc(100% - 2px), rgb(28 20 8 / 0.4) calc(100% - 1px),
+                    rgb(28 20 8 / 0.7)),
+    linear-gradient(to right, #3b362c, #816635 10%, #ac8946 20%, #cba14f 30%, #ddb04f 40%,
+                              #e2b64d 50%, #deb24f 60%, #cda350 70%, #b08b47 80%, #866a37 90%, #312715);
+}
+.preview::before { left: calc(-1 * var(--roller)); }
+.preview::after { right: calc(var(--curl) * 0.3); }
+.preview .curl {
+  position: absolute; top: -1px; bottom: -1px; right: -1px; width: var(--curl);
+  border-radius: 0 3px 3px 0; pointer-events: none;
+  background: linear-gradient(to right, transparent, rgb(19 18 16 / 0.015) 11%, rgb(19 18 16 / 0.03) 21%,
+                              rgb(19 18 16 / 0.07) 32%, rgb(19 18 16 / 0.11) 43%, rgb(19 18 16 / 0.17) 53%,
+                              rgb(19 18 16 / 0.27) 64%, rgb(19 18 16 / 0.35) 74%, rgb(19 18 16 / 0.5) 85%,
+                              rgb(19 18 16 / 0.75) 96%, rgb(19 18 16 / 0.93));
+}
+/* The system ends just past the paper's edge, so that the music seems to go on
+   around the roller: its last barline is out of sight. */
+.preview .music { display: block; overflow: hidden; }
+.preview img { display: block; width: 101%; max-width: none; height: auto; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 0.5rem; }
 .button {
   display: inline-block; padding: 0.6rem 1.1rem; border-radius: 6px; text-decoration: none;

@@ -19,7 +19,8 @@ elsewhere.
 - `tools/build.py` fetches each source, updates it with `convert-ly`, converts
   it with [lilyport](https://github.com/saintmatthieu/lilyport), checks it
   (the licence its source declares, the MusicXML 4.0 schema), and writes the
-  site into `_site/`: the scores, a page for each, the library page,
+  site into `_site/`: the scores, a page for each with a preview of its first
+  system (engraved by LilyPond from the source), the library page,
   `index.json`, and `sitemap.xml` and `robots.txt` for search engines.
 - `index.json` is what Orchestrion and the web pages read. It has a
   `schemaVersion`; URLs in it are relative to it; each score's `version` is a

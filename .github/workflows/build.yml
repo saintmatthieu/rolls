@@ -53,7 +53,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .cache/scores
-          key: scores-${{ runner.os }}-${{ hashFiles('pins.env', 'catalogue/**', 'tools/*.py') }}
+          key: scores-${{ runner.os }}-${{ hashFiles('pins.env', 'catalogue/**', 'tools/*.py', 'tools/*.ly') }}
           restore-keys: scores-${{ runner.os }}-
 
       - name: Build
