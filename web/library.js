@@ -133,7 +133,25 @@
     filter();
   }
 
-  input.addEventListener("input", function () { filter(); save(); });
+  // The search box stays on screen as the table scrolls under it: searching
+  // from down the table brings the table's start back under the box, or the
+  // rows found could be out of sight above.
+  input.addEventListener("input", function () {
+    filter();
+    save();
+    var under = table.getBoundingClientRect().top - input.getBoundingClientRect().bottom;
+    if (under < 0) window.scrollBy(0, under);
+  });
+
+  // Back to the top: shown once the visitor is a screen down the page.
+  var toTop = document.getElementById("to-top");
+  function showToTop() { toTop.hidden = window.scrollY < window.innerHeight; }
+  window.addEventListener("scroll", showToTop, { passive: true });
+  showToTop();
+  toTop.addEventListener("click", function () {
+    var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
+  });
 
   headings.forEach(function (th) {
     th.querySelector("button").addEventListener("click", function () {

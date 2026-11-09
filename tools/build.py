@@ -551,6 +551,7 @@ def library_page(entries):
     </tbody>
   </table>
   <p class="empty" id="empty" hidden>No score matches.</p>
+  <button type="button" class="to-top" id="to-top" aria-label="Back to top" hidden>↑</button>
   <p class="note">Difficulty from 1 to 9, for rhythm and for notes:
   <a href="difficulty/">how it is rated</a>. Sorting by Difficulty uses the
   higher of a score's two levels.</p>
