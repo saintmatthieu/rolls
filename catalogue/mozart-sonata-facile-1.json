@@ -1,0 +1,26 @@
+{
+  "title": "Piano Sonata No. 16 “Sonata facile”: I. Allegro",
+  "composer": "Wolfgang Amadeus Mozart",
+  "opus": "K. 545",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 998,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/MozartWA/KV545/K545-1/K545-1.ly",
+    "edition": "IMSLP"
+  },
+  "license": {
+    "name": "CC BY-SA 3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Alejandro Sierra"
+    }
+  ]
+}

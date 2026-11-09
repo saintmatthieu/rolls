@@ -1,0 +1,26 @@
+{
+  "title": "Gnossienne No. 1",
+  "composer": "Erik Satie",
+  "opus": null,
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2035,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SatieE/Gnossienne/no_1/no_1.ly",
+    "edition": "Éditions Salabert, Paris, 1913"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Knute Snortum"
+    }
+  ]
+}

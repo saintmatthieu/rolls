@@ -1,0 +1,34 @@
+{
+  "title": "The Well-Tempered Clavier, Book I: Prelude No. 2 in C minor",
+  "composer": "Johann Sebastian Bach",
+  "opus": "BWV 847",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 550,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BachJS/BWV847/bwv847a/bwv847a.ly",
+    "edition": "Breitkopf & Härtel, 1866"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Davide Castellone"
+    }
+  ],
+  "fixes": [
+    {
+      "file": "bwv847a.ly",
+      "replace": "#(if (equal? paper-width (* 8.5 in))\n\t(define system-count 12))",
+      "with": "",
+      "why": "the page layout's Scheme, which LilyPond now refuses (a define inside an if); no effect on the music"
+    }
+  ]
+}

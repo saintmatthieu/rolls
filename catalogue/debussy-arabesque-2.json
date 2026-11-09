@@ -1,0 +1,26 @@
+{
+  "title": "Deux Arabesques: No. 2 in G major",
+  "composer": "Claude Debussy",
+  "opus": "L. 66 No. 2",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1994,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/DebussyC/L66/debussy_Arabesque_2/debussy_Arabesque_2.ly",
+    "edition": "Durand et Schoenewerk, Paris, 1891"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Knute Snortum"
+    }
+  ]
+}

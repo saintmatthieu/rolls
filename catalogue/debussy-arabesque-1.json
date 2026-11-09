@@ -1,0 +1,26 @@
+{
+  "title": "Deux Arabesques: No. 1 in E major",
+  "composer": "Claude Debussy",
+  "opus": "L. 66 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1777,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/DebussyC/L66/debussy_Arabesque_1/debussy_Arabesque_1.ly",
+    "edition": "Durand et Fils, 1904"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Keith OHara"
+    }
+  ]
+}

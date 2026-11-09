@@ -1,0 +1,26 @@
+{
+  "title": "The Well-Tempered Clavier, Book I: Fugue No. 2 in C minor",
+  "composer": "Johann Sebastian Bach",
+  "opus": "BWV 847",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1941,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BachJS/BWV847/fuga2/fuga2.ly",
+    "edition": "Edition Peters"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Urs Metzger"
+    }
+  ]
+}

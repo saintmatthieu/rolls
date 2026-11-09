@@ -1,0 +1,26 @@
+{
+  "title": "Gnossienne No. 3",
+  "composer": "Erik Satie",
+  "opus": null,
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2131,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SatieE/Gnossienne/no_3/no_3.ly",
+    "edition": "Paris : Rouart, Lerolle & Cie., 1913. Plates R.L. 9884-9886 & Cie. Possibly scanned from the Dover reprint."
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Frédéric Duperray"
+    }
+  ]
+}

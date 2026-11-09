@@ -1,0 +1,26 @@
+{
+  "title": "Ballade No. 1 in G minor",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 23",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1959,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O23/chopin-op23-ballade-1/chopin-op23-ballade-1-lys/chopin-op23-ballade-1.ly",
+    "edition": "Klindworth, Bote & Bock, 1880"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Javier Ruiz-Alma"
+    }
+  ]
+}

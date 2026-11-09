@@ -1,0 +1,26 @@
+{
+  "title": "Piano Sonata No. 8 “Pathétique”: II. Adagio cantabile",
+  "composer": "Ludwig van Beethoven",
+  "opus": "Op. 13",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 295,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BeethovenLv/O13/pathetique-2/pathetique-2.ly",
+    "edition": "Berners, 1908 (edited by A. Winterberger); Peters, 1910"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Chris Sawer"
+    }
+  ]
+}
