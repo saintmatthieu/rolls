@@ -470,11 +470,11 @@ def score_page(entry, preview_size):
   {levels}
   {preview}
   <div class="actions">
-    <a class="button primary" href="https://orchestrion.app/">Play it in Orchestrion</a>
+    <a class="button primary" href="https://orchestrion.app/play/?id={e(entry['id'])}">Play it in Orchestrion</a>
     <a class="button" href="../../{e(entry['musicxml'])}" download>Download MusicXML</a>
   </div>
-  <p class="hint">Get Orchestrion, download the MusicXML and open it there:
-  tap the rhythm, and the score plays the notes.</p>
+  <p class="hint">Opens the score in Orchestrion: tap the rhythm, and the
+  score plays the notes. No Orchestrion yet? The link offers it.</p>
   <ul class="credits">{credits}</ul>
 </article>"""
     instrument = f" for {entry['instrument'].lower()}" if entry["instrument"] else ""
