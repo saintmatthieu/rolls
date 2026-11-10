@@ -484,7 +484,7 @@ def score_page(entry, preview_size):
   {preview}
   <div class="actions">
     <a class="button primary" href="https://orchestrion.app/play/?id={e(entry['id'])}" data-play="{e(entry['id'])}">Play it in Orchestrion</a>
-    <a class="button" href="../../{e(entry['musicxml'])}" download>Download MusicXML</a>
+    <a class="button" href="../../{e(entry['musicxml'])}" download data-musicxml="{e(entry['id'])}">Download MusicXML</a>
   </div>
   <p class="hint">Opens the score in Orchestrion: tap the rhythm, and the
   score plays the notes. No Orchestrion yet? The link offers it.</p>
