@@ -55,6 +55,10 @@ CACHE = ROOT / ".cache"
 WEB = ROOT / "web"
 PREVIEW_LY = ROOT / "tools" / "preview.ly"
 SITE_URL = "https://rolls.orchestrion.app/"
+# The script of the Plausible site the pages report to ("" for none): the
+# site orchestrion.app, which rolls.orchestrion.app and the app both report
+# to, so that a visit can be followed from the library into the app.
+PLAUSIBLE_SCRIPT = "https://plausible.io/js/pa-VGtoyWFiZbwIoj-pknnQr.js"
 MUTOPIA_GIT = "https://github.com/MutopiaProject/MutopiaProject.git"
 MUTOPIA_PAGE = "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id={}"
 SCHEMA_VERSION = 1
@@ -385,6 +389,15 @@ def page(title, body, path, description="", data=None):
         # "</" would end the script element early.
         text = json.dumps(data, ensure_ascii=False, indent=1).replace("</", "<\\/")
         head = f'\n  <script type="application/ld+json">\n{text}\n  </script>'
+    if PLAUSIBLE_SCRIPT:
+        # No cookies, nothing personal: page views, and the events analytics.js
+        # sends. The second script is Plausible's: it queues calls until the first
+        # has loaded.
+        head += (f'\n  <script async src="{html.escape(PLAUSIBLE_SCRIPT)}"></script>'
+                 '\n  <script>window.plausible=window.plausible||function(){(plausible.q='
+                 'plausible.q||[]).push(arguments)},plausible.init=plausible.init||'
+                 'function(i){plausible.o=i||{}};plausible.init()</script>'
+                 f'\n  <script defer src="{up}analytics.js"></script>')
     template = (WEB / "page.html").read_text(encoding="utf-8")
     return (template
             .replace("{{title}}", html.escape(title))
@@ -470,7 +483,7 @@ def score_page(entry, preview_size):
   {levels}
   {preview}
   <div class="actions">
-    <a class="button primary" href="https://orchestrion.app/play/?id={e(entry['id'])}">Play it in Orchestrion</a>
+    <a class="button primary" href="https://orchestrion.app/play/?id={e(entry['id'])}" data-play="{e(entry['id'])}">Play it in Orchestrion</a>
     <a class="button" href="../../{e(entry['musicxml'])}" download>Download MusicXML</a>
   </div>
   <p class="hint">Opens the score in Orchestrion: tap the rhythm, and the
@@ -724,7 +737,7 @@ def write_pages(out, entries, model):
     (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
                                     encoding="utf-8")
-    for asset in ("style.css", "library.js", "favicon.png", "paper.svg"):
+    for asset in ("style.css", "library.js", "analytics.js", "favicon.png", "paper.svg"):
         if (WEB / asset).exists():
             shutil.copy(WEB / asset, out / asset)
 
