@@ -1,0 +1,27 @@
+{
+  "title": "Notebook for Anna Magdalena Bach: Air in F major",
+  "composer": "Anonymous",
+  "opus": "BWV Anh. 131",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 767,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/BachJS/BWVAnh131/air/air.ly",
+    "edition": "Autograph"
+  },
+  "license": {
+    "name": "CC BY-SA 2.5",
+    "url": "https://creativecommons.org/licenses/by-sa/2.5/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Anonymous"
+    }
+  ]
+}
