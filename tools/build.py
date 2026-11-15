@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Builds the Rolls site from the catalogue into _site/.
 
-For each record catalogue/<id>.json: fetch its source (a Mutopia piece at the
-pinned MutopiaProject commit), update it with convert-ly, convert it to
-MusicXML with lilyport, check the result, and write
+For each record catalogue/<id>.json: fetch its source at the commit it pins,
+and make it MusicXML: a Mutopia piece (kind "mutopia") is updated with
+convert-ly and converted with lilyport; a MusicXML transcription in a git
+repository (kind "musicxml", e.g. Orchestrion's bundled scores) is taken as
+it is. Then check the result, and write
 
     _site/scores/<id>.mxl     the score, with its opus and difficulty written
                               in for Orchestrion (stamp())
@@ -42,6 +44,7 @@ import subprocess
 import sys
 import threading
 import unicodedata
+import urllib.parse
 import zipfile
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
@@ -129,22 +132,39 @@ def find_lilypond(lilyport):
     raise BuildError("LilyPond not found: run lilyport's tools/fetch-lilypond.sh")
 
 
-def mutopia_checkout(commit, paths):
-    """A sparse checkout of MutopiaProject at commit, holding the directories of
-    the given source files (a piece may include files beside it)."""
-    repo = CACHE / "mutopia" / commit
+def sparse_checkout(repo, remote, commit, patterns):
+    """A sparse checkout of remote at commit in repo, holding what patterns
+    (in .gitignore's syntax, from the repository's root) match."""
+    git = ["git", "-C", str(repo)]
     if not (repo / ".git").exists():
         repo.mkdir(parents=True, exist_ok=True)
-        git = ["git", "-C", str(repo)]
         subprocess.run(git + ["init", "-q"], check=True)
-        subprocess.run(git + ["remote", "add", "origin", MUTOPIA_GIT], check=True)
+        subprocess.run(git + ["remote", "add", "origin", remote], check=True)
         subprocess.run(git + ["fetch", "-q", "--depth", "1", "--filter=blob:none",
                               "origin", commit], check=True)
-    directories = sorted({"/" + str(Path(p).parent) + "/" for p in paths})
-    git = ["git", "-C", str(repo)]
-    subprocess.run(git + ["sparse-checkout", "set", "--no-cone"] + directories, check=True)
+    subprocess.run(git + ["sparse-checkout", "set", "--no-cone"] + sorted(set(patterns)),
+                   check=True)
     subprocess.run(git + ["checkout", "-q", commit], check=True)
     return repo
+
+
+def source_remote(record):
+    """The git repository the record's source is in."""
+    source = record["source"]
+    return MUTOPIA_GIT if source["kind"] == "mutopia" else source["repository"]
+
+
+def source_checkout(remote, commit, records):
+    """A checkout of remote at commit holding the sources of records: for a
+    Mutopia piece, its directory (a piece may include files beside it); for
+    a MusicXML file, the file."""
+    if remote == MUTOPIA_GIT:
+        repo = CACHE / "mutopia" / commit
+        patterns = ["/" + str(Path(r["source"]["path"]).parent) + "/" for r in records]
+    else:
+        repo = CACHE / "git" / hashlib.sha256(remote.encode()).hexdigest()[:12] / commit
+        patterns = ["/" + r["source"]["path"] for r in records]
+    return sparse_checkout(repo, remote, commit, patterns)
 
 
 def prepare_source(record, repo, convert_ly, work):
@@ -197,6 +217,59 @@ def check_license(record, ly_text):
     if not any(text in ly_text for text in expected):
         raise BuildError(f"the source doesn't say {record['license']['name']} "
                          f"(looked for {' or '.join(expected)})")
+
+
+def prepare_musicxml(record, repo, work):
+    """The record's MusicXML (from a .mxl or an uncompressed file), without
+    the difficulty an earlier stamp() wrote in (Orchestrion stamps its bundled
+    scores), written into work/ as score.musicxml for the preview; returns
+    the document."""
+    if work.exists():
+        shutil.rmtree(work)
+    work.mkdir(parents=True)
+    source = repo / record["source"]["path"]
+    xml_bytes = musicxml_text(source) if zipfile.is_zipfile(source) else source.read_bytes()
+    text = xml_bytes.decode("utf-8")
+    for name in DIFFICULTY_FIELDS.values():
+        text = re.sub(rf'<miscellaneous-field name="{name}">[^<]*</miscellaneous-field>',
+                      "", text)
+    text = re.sub(r"<miscellaneous>\s*</miscellaneous>", "", text)
+    (work / "score.musicxml").write_text(text, encoding="utf-8")
+    return text.encode("utf-8")
+
+
+def check_rights(record, xml_bytes):
+    """A MusicXML source must say its licence in its <rights>."""
+    rights = " ".join(e.text or "" for e in ET.fromstring(xml_bytes).iter("rights"))
+    expected = LICENSE_TEXT[record["license"]["name"]]
+    if not any(text.casefold() in rights.casefold() for text in expected):
+        raise BuildError(f"the source's rights don't say {record['license']['name']} "
+                         f"(looked for {' or '.join(expected)})")
+
+
+def write_mxl(xml_bytes, output):
+    """A compressed MusicXML file holding the document."""
+    container = ('<?xml version="1.0" encoding="UTF-8"?>\n<container><rootfiles>'
+                 '<rootfile full-path="score.musicxml" '
+                 'media-type="application/vnd.recordare.musicxml+xml"/>'
+                 '</rootfiles></container>\n')
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(zipfile.ZipInfo("mimetype"), "application/vnd.recordare.musicxml",
+                         compress_type=zipfile.ZIP_STORED)
+        archive.writestr("META-INF/container.xml", container)
+        archive.writestr("score.musicxml", xml_bytes)
+
+
+def musicxml_to_ly(work, lilypond):
+    """For the preview of a MusicXML source: its work/score.musicxml as
+    LilyPond, by LilyPond's musicxml2ly; returns the .ly file."""
+    output = work / "score.ly"
+    result = subprocess.run([str(lilypond.with_name("musicxml2ly")),
+                             "-o", str(output), str(work / "score.musicxml")],
+                            capture_output=True, text=True)
+    if result.returncode or not output.exists():
+        raise BuildError(f"musicxml2ly failed:\n{result.stderr[-500:]}")
+    return output
 
 
 def convert(record, main, lilyport, output):
@@ -375,6 +448,16 @@ def index_entry(record, mxl, xml_bytes, version, levels):
             "commit": source["commit"],
             "path": source["path"],
         })
+    elif source["kind"] == "musicxml":
+        # url: the edition it is transcribed from, which Orchestrion links to.
+        entry["source"].update({
+            "url": source["url"],
+            "repository": source["repository"],
+            "commit": source["commit"],
+            "path": source["path"],
+            "file": f'{source["repository"]}/blob/{source["commit"]}/'
+                    f'{urllib.parse.quote(source["path"])}',
+        })
     return entry
 
 
@@ -443,15 +526,22 @@ def score_data(entry):
 def credit_lines(entry):
     e = html.escape
     lines = [f"{e(c['role'])} {e(c['name'])}" for c in entry["credits"]]
-    if entry["source"].get("edition"):
-        lines.append(f"After {e(entry['source']['edition'])}")
+    source = entry["source"]
+    if source.get("edition") and source["kind"] == "musicxml":
+        lines.append(f'After <a href="{e(source["url"])}">{e(source["edition"])}</a>')
+    elif source.get("edition"):
+        lines.append(f"After {e(source['edition'])}")
     for correction in entry.get("corrections", []):
         lines.append(f"Corrected from the source: {e(correction)}")
     license_ = entry["license"]
     lines.append(f'Licence: <a href="{e(license_["url"])}">{e(license_["name"])}</a>')
-    if entry["source"].get("url"):
-        lines.append(f'Source and printable PDF: <a href="{e(entry["source"]["url"])}">'
-                     f'Mutopia Project, piece {entry["source"]["mutopiaId"]}</a>')
+    if source["kind"] == "mutopia" and source.get("url"):
+        lines.append(f'Source and printable PDF: <a href="{e(source["url"])}">'
+                     f'Mutopia Project, piece {source["mutopiaId"]}</a>')
+    elif source["kind"] == "musicxml":
+        repository = source["repository"].rstrip("/").rsplit("/", 1)[-1]
+        lines.append(f'Source: <a href="{e(source["file"])}">{e(repository)}, '
+                     f'{e(source["path"])}</a>')
     return lines
 
 
@@ -510,7 +600,9 @@ def composer_key(entry):
     ("SchumannR", "BachJS", "BeethovenLv", "RougetdeLisleCJ"); otherwise the
     record's composerSort, else the last word of the name. Mutopia's directory
     is only used if its surname is in the name we credit: Mutopia files the
-    Minuet in G under BachJS, which we credit to Petzold."""
+    Minuet in G under BachJS, which we credit to Petzold. Without either, the
+    name the way Mutopia files it (Wolfgang Amadeus Mozart: "MozartWA"), so
+    that a composer's scores from elsewhere sort with those from Mutopia."""
     if entry.get("composerSort"):
         return fold(entry["composerSort"])
     if entry["source"]["kind"] == "mutopia":
@@ -519,7 +611,7 @@ def composer_key(entry):
         if surname and fold(surname) in re.sub(r"[\s-]", "", fold(entry["composer"])):
             return fold(directory)
     *given, surname = entry["composer"].split()
-    return fold(" ".join([surname, *given]))
+    return fold(surname + "".join(name[0] for name in given))
 
 
 def opus_key(opus):
@@ -776,10 +868,24 @@ def tools_fingerprint(lilyport, lilypond):
     return digest.hexdigest()
 
 
+def musicxml_fingerprint(lilypond):
+    """What taking a MusicXML source depends on beside the record: Rolls' steps,
+    and LilyPond's version (musicxml2ly's, for the preview)."""
+    digest = hashlib.sha256()
+    version = subprocess.run([str(lilypond), "--version"], capture_output=True, text=True)
+    digest.update(version.stdout.split("\n", 1)[0].encode())
+    for step in (prepare_musicxml, check_rights, write_mxl, musicxml_to_ly):
+        digest.update(inspect.getsource(step).encode())
+    digest.update(json.dumps(LICENSE_TEXT, sort_keys=True).encode())
+    return digest.hexdigest()
+
+
 def conversion_key(record, tools):
     """The record's part in its conversion (not its title, composer, opus,
     credits: those don't change the converted music), with the tools'."""
-    shaping = {"source": {k: record["source"].get(k) for k in ("kind", "commit", "path")},
+    fields = ("kind", "commit", "path") + (("repository",) if record["source"]["kind"] != "mutopia"
+                                           else ())
+    shaping = {"source": {k: record["source"].get(k) for k in fields},
                "license": record["license"]["name"],
                "fixes": record.get("fixes", []),
                "lilyport": record.get("lilyport", {}),
@@ -821,6 +927,8 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
     mxl = out / "scores" / f"{record['id']}.mxl"
     cached = SCORE_CACHE / f"{key}.mxl"
     preview = cached_preview(key)
+    work = CACHE / "work" / record["id"]
+    is_musicxml = record["source"]["kind"] == "musicxml"
     main = None
     try:
         if use_cache and cached.exists():
@@ -831,10 +939,16 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
                 log(line)
             log("    (cached)")
         else:
-            main = prepare_source(record, repo, convert_ly, CACHE / "work" / record["id"])
-            check_license(record, header_text(main))
             first = len(_log_lines.lines)
-            convert(record, main, lilyport, mxl)
+            if is_musicxml:
+                xml_bytes = prepare_musicxml(record, repo, work)
+                check_rights(record, xml_bytes)
+                write_mxl(xml_bytes, mxl)
+                main = musicxml_to_ly(work, convert_ly)
+            else:
+                main = prepare_source(record, repo, convert_ly, work)
+                check_license(record, header_text(main))
+                convert(record, main, lilyport, mxl)
             # Kept before stamp() writes into it: the opus and levels are
             # written in at every build.
             SCORE_CACHE.mkdir(parents=True, exist_ok=True)
@@ -857,7 +971,9 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
             check_schema(xml_bytes, schema)
         if not (use_cache and preview.exists()):
             SCORE_CACHE.mkdir(parents=True, exist_ok=True)
-            work = CACHE / "work" / record["id"]
+            if not main and is_musicxml:
+                prepare_musicxml(record, repo, work)
+                main = musicxml_to_ly(work, convert_ly)
             render_preview(record, main or prepare_source(record, repo, convert_ly, work),
                            convert_ly.with_name("lilypond"), lilyport, preview)
         shutil.copyfile(preview, out / "previews" / f"{record['id']}.svg")
@@ -888,28 +1004,32 @@ def build(args):
     (out / "scores").mkdir(parents=True)
     (out / "previews").mkdir()
 
-    tools = tools_fingerprint(lilyport, lilypond)
-    keys = {record["id"]: conversion_key(record, tools) for record in records}
+    for record in records:
+        if record["source"]["kind"] not in ("mutopia", "musicxml"):
+            raise BuildError(f"{record['id']}: unknown source kind {record['source']['kind']}")
+    tools = {"mutopia": tools_fingerprint(lilyport, lilypond),
+             "musicxml": musicxml_fingerprint(lilypond)}
+    keys = {record["id"]: conversion_key(record, tools[record["source"]["kind"]])
+            for record in records}
     use_cache = not args.no_cache
     # Only the sources of the scores to convert are fetched.
-    by_commit = {}
+    checkout = lambda record: (source_remote(record), record["source"]["commit"])
+    by_checkout = {}
     for record in records:
-        if record["source"]["kind"] != "mutopia":
-            raise BuildError(f"{record['id']}: unknown source kind {record['source']['kind']}")
         key = keys[record["id"]]
         if not (use_cache and (SCORE_CACHE / f"{key}.mxl").exists()
                 and cached_preview(key).exists()):
-            by_commit.setdefault(record["source"]["commit"], []).append(record)
-    log(f"{len(records) - sum(map(len, by_commit.values()))} scores from the cache, "
-        f"{sum(map(len, by_commit.values()))} from their source")
-    repos = {commit: mutopia_checkout(commit, [r["source"]["path"] for r in group])
-             for commit, group in by_commit.items()}
+            by_checkout.setdefault(checkout(record), []).append(record)
+    log(f"{len(records) - sum(map(len, by_checkout.values()))} scores from the cache, "
+        f"{sum(map(len, by_checkout.values()))} from their source")
+    repos = {(remote, commit): source_checkout(remote, commit, group)
+             for (remote, commit), group in by_checkout.items()}
 
     def build_score(record):
         """The score's index entry, or None if it failed; and its log lines."""
         _log_lines.lines = [record["id"]]
         try:
-            return convert_score(record, repos.get(record["source"]["commit"]), convert_ly,
+            return convert_score(record, repos.get(checkout(record)), convert_ly,
                                  lilyport, out, model, args.schema, keys[record["id"]],
                                  use_cache), _log_lines.lines
         finally:

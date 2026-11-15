@@ -12,15 +12,20 @@ elsewhere.
 ## How it works
 
 - `catalogue/<id>.json`: one record per score: title, composer, licence,
-  credits, and where it comes from (for a Mutopia Project piece, its id, the
-  source file and the MutopiaProject commit it is built from). The file name
+  credits, and where it comes from: for a Mutopia Project piece (`"kind":
+  "mutopia"`), its id, the source file and the MutopiaProject commit it is
+  built from; for a MusicXML transcription in a git repository (`"kind":
+  "musicxml"`, such as the Mozart variations bundled with Orchestrion), the
+  repository, commit and file, and the edition it is transcribed from. The file name
   is the score's id, used in its URLs (`scores/<id>.mxl`, `s/<id>/`): chosen
   once, never renamed.
 - `tools/build.py` fetches each source, updates it with `convert-ly`, converts
-  it with [lilyport](https://github.com/saintmatthieu/lilyport), checks it
-  (the licence its source declares, the MusicXML 4.0 schema), and writes the
+  it with [lilyport](https://github.com/saintmatthieu/lilyport) (a MusicXML
+  source is taken as it is), checks it (the licence its source declares, in
+  its header or its `<rights>`, the MusicXML 4.0 schema), and writes the
   site into `_site/`: the scores, a page for each with a preview of its first
-  system (engraved by LilyPond from the source), the library page,
+  system (engraved by LilyPond from the source, through `musicxml2ly` for a
+  MusicXML one), the library page,
   `index.json`, and `sitemap.xml` and `robots.txt` for search engines.
 - `index.json` is what Orchestrion and the web pages read. It has a
   `schemaVersion`; URLs in it are relative to it; each score's `version` is a
