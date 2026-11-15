@@ -1,0 +1,31 @@
+{
+  "title": "Sonatina in C major: III. Vivace",
+  "composer": "Muzio Clementi",
+  "opus": "Op. 36 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 804,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ClementiM/O36/sonatina-1/sonatina-1.ly",
+    "edition": "Sonatina Album, G. Schirmer, Inc.  Copyright 1893"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Brian D. Rude"
+    }
+  ],
+  "lilyport": {
+    "score": 3,
+    "tempo": "8=160"
+  }
+}
