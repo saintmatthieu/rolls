@@ -1,0 +1,32 @@
+{
+  "title": "12 Variations on “Ah vous dirai-je, Maman”: Variation IV",
+  "composer": "Wolfgang Amadeus Mozart",
+  "opus": "K. 265",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "musicxml",
+    "repository": "https://github.com/saintmatthieu/Orchestrion",
+    "commit": "572fee9822acf67afe3dfa389e0413f77902fdcc",
+    "path": "scores/Ah vous dirai-je, Maman - Variation 4.mxl",
+    "edition": "Mozarts Werke, Serie 21 No. 6, Breitkopf & Härtel, 1878",
+    "url": "https://imslp.org/wiki/12_Variations_on_'Ah,_vous_dirai-je_maman',_K.265/300e_(Mozart,_Wolfgang_Amadeus)"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Transcribed with",
+      "name": "AI (Claude, by Anthropic)"
+    },
+    {
+      "role": "Reviewed against the edition by",
+      "name": "Matthieu Hodgkinson"
+    }
+  ]
+}
