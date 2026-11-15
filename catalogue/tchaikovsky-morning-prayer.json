@@ -1,0 +1,27 @@
+{
+  "title": "Children's Album: Morning Prayer",
+  "composer": "Pyotr Ilyich Tchaikovsky",
+  "opus": "Op. 39 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2032,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/TchaikovskyPI/O39/01MorningPrayer/01MorningPrayer.ly",
+    "edition": "Schirmer, 1904"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Rem Zolotykh"
+    }
+  ]
+}
