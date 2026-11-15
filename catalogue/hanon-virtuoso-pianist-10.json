@@ -1,0 +1,31 @@
+{
+  "title": "The Virtuoso Pianist: Exercise 10",
+  "composer": "Charles-Louis Hanon",
+  "opus": null,
+  "instrument": "Piano",
+  "tags": [
+    "piano",
+    "teaching"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2037,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/HanonCL/virtuoso-pianist-pt1/virtuoso-pianist-pt1-lys/hanon-book.ly",
+    "edition": "Schirmer, 1900"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Steve Taylor and Javier Ruiz-Alma"
+    }
+  ],
+  "lilyport": {
+    "score": 10,
+    "tempo": "4=84"
+  }
+}
