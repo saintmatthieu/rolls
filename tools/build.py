@@ -386,9 +386,20 @@ def stamp(mxl, opus, levels):
     stamped.replace(mxl)
 
 
+# libxml2 compiles a schema unsafely from several threads at once (it crashed
+# builds now and then: "the given type ... is not a built-in type"): one
+# compilation at a time, and a validator for each thread, whose error log is
+# its own.
+_schema_lock = threading.Lock()
+_validators = threading.local()
+
+
 def check_schema(xml_bytes, schema):
     from lxml import etree
-    validator = etree.XMLSchema(etree.parse(str(schema)))
+    validator = getattr(_validators, "validator", None)
+    if validator is None:
+        with _schema_lock:
+            validator = _validators.validator = etree.XMLSchema(etree.parse(str(schema)))
     document = etree.fromstring(xml_bytes, etree.XMLParser(resolve_entities=False,
                                                            no_network=True))
     if not validator.validate(document):
