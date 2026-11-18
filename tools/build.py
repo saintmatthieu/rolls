@@ -11,7 +11,9 @@ it is. Then check the result, and write
                               in for Orchestrion (stamp())
     _site/previews/<id>.svg   its first system, for its page
     _site/s/<id>/index.html   its page
-    _site/index.json          the catalogue for Orchestrion and the web UI
+    _site/index.json          the catalogue for Orchestrion and the web UI,
+                              with the recordings of its pieces
+    _site/player.html         the page Orchestrion plays a YouTube video in
     _site/index.html          the library page
     _site/difficulty/         how difficulty is rated (tools/difficulty.py)
     _site/sitemap.xml, robots.txt  for search engines
@@ -21,6 +23,7 @@ A score that fails a check is left out of the site, and the build fails
 
     python3 tools/build.py --lilyport ../lilyport [--schema XSD] [--only ID]
     python3 tools/build.py --pages-only   # the pages again, from _site/index.json
+    python3 tools/build.py --check-recordings   # ask YouTube about the videos
 
 Converted scores are kept in .cache/scores/, under a key made of everything
 that shapes them (conversion_key()): a score converts again only when one of
@@ -44,7 +47,9 @@ import subprocess
 import sys
 import threading
 import unicodedata
+import urllib.error
 import urllib.parse
+import urllib.request
 import zipfile
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
@@ -99,6 +104,111 @@ def log(message):
         print(message, file=sys.stderr, flush=True)
 
 
+# ---- recordings -------------------------------------------------------------
+#
+# A record's "recordings": videos of the piece being played, best first, each
+# {"url", "performer"}. Orchestrion shows the first one's thumbnail by the
+# score and plays YouTube's in the app, through player.html; any other https
+# URL it opens in the browser. It silently drops an entry it can't use (no
+# performer, a URL that isn't https): the build refuses those instead.
+
+YOUTUBE_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
+YOUTUBE_WATCH = "https://www.youtube.com/watch?v="
+YOUTUBE_OEMBED = "https://www.youtube.com/oembed?format=json&url="
+
+
+def youtube_start(text):
+    """The seconds of a link's t= or start= ("412", "412s", "6m52s")."""
+    match = re.fullmatch(r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?", text)
+    if not text or not match:
+        raise BuildError(f"a start time that isn't understood ({text!r})")
+    hours, minutes, seconds = (int(part or 0) for part in match.groups())
+    return hours * 3600 + minutes * 60 + seconds
+
+
+def canonical_recording_url(url):
+    """The URL as index.json gives it: a YouTube link, however it was copied,
+    in the one form https://www.youtube.com/watch?v=ID[&t=SECONDS]; any other
+    link as it is."""
+    if url != url.strip() or re.search(r"\s", url):
+        raise BuildError("whitespace in the URL")
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != "https" or not parts.hostname:
+        raise BuildError("the URL must be https, with a host")
+    host = re.sub(r"^(www|m|music)\.", "", parts.hostname.lower())
+    if host not in ("youtube.com", "youtu.be", "youtube-nocookie.com"):
+        return url
+    query = urllib.parse.parse_qs(parts.query)
+    segments = [segment for segment in parts.path.split("/") if segment]
+    if host == "youtu.be" and len(segments) == 1:
+        video = segments[0]
+    elif host != "youtu.be" and segments == ["watch"]:
+        video = query.get("v", [""])[0]
+    elif host != "youtu.be" and len(segments) == 2 and segments[0] in ("embed", "shorts", "live"):
+        video = segments[1]
+    else:
+        raise BuildError("a YouTube link that isn't a video's (a playlist, a channel?)")
+    if not YOUTUBE_ID.match(video):
+        raise BuildError(f"not a YouTube video id ({video!r})")
+    start = query.get("t") or query.get("start")
+    seconds = youtube_start(start[0]) if start else 0
+    return YOUTUBE_WATCH + video + (f"&t={seconds}" if seconds else "")
+
+
+def check_recordings(recordings):
+    """The record's recordings as index.json gives them, or a BuildError."""
+    if not isinstance(recordings, list):
+        raise BuildError("recordings must be a list")
+    checked = []
+    for number, recording in enumerate(recordings, 1):
+        try:
+            if not isinstance(recording, dict) or set(recording) != {"url", "performer"}:
+                raise BuildError('it must be {"url": ..., "performer": ...}')
+            url, performer = recording["url"], recording["performer"]
+            if not isinstance(url, str) or not isinstance(performer, str):
+                raise BuildError("url and performer must be strings")
+            if not performer.strip() or performer != performer.strip():
+                raise BuildError("the performer must be a name, without spaces around it")
+            entry = {"url": canonical_recording_url(url), "performer": performer}
+            if entry["url"] in (other["url"] for other in checked):
+                raise BuildError(f"the same video twice ({entry['url']})")
+        except BuildError as error:
+            raise BuildError(f"recording {number}: {error}")
+        checked.append(entry)
+    return checked
+
+
+def check_videos(recordings):
+    """Asks YouTube's oEmbed whether each video exists: the ids of the pieces
+    with a video that doesn't. One that exists but can't be asked about
+    (private, or its owner forbids embedding: 401, 403) is only warned about,
+    since Orchestrion then offers it in the browser; and so is YouTube not
+    answering."""
+    missing = []
+    for piece, entries in recordings.items():
+        for entry in entries:
+            if not entry["url"].startswith(YOUTUBE_WATCH):
+                continue
+            request = urllib.request.Request(
+                YOUTUBE_OEMBED + urllib.parse.quote(entry["url"], safe=""),
+                headers={"User-Agent": "rolls-build"})
+            try:
+                with urllib.request.urlopen(request, timeout=20):
+                    pass
+            except urllib.error.HTTPError as error:
+                if error.code in (401, 403):
+                    log(f"warning: {piece}: {entry['url']} is private or not to be embedded "
+                        f"(HTTP {error.code})")
+                elif error.code in (400, 404):
+                    log(f"error: {piece}: {entry['url']} doesn't exist (HTTP {error.code})")
+                    missing.append(piece)
+                else:
+                    log(f"warning: {piece}: {entry['url']} not checked (HTTP {error.code})")
+            except OSError as error:
+                log(f"warning: {piece}: {entry['url']} not checked ({error})")
+    return missing
+
+
 def load_catalogue(only=None):
     """The records, each with its id (the file name), sorted by id."""
     records = []
@@ -114,6 +224,10 @@ def load_catalogue(only=None):
                 raise BuildError(f"{path.name}: no {field}")
         if record["license"]["name"] not in LICENSE_TEXT:
             raise BuildError(f"{path.name}: unknown licence {record['license']['name']}")
+        try:
+            record["recordings"] = check_recordings(record.get("recordings", []))
+        except BuildError as error:
+            raise BuildError(f"{path.name}: {error}")
         records.append({"id": score_id, **record})
     return records
 
@@ -840,7 +954,8 @@ def write_pages(out, entries, model):
     (out / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n",
                                     encoding="utf-8")
-    for asset in ("style.css", "library.js", "analytics.js", "favicon.png", "paper.svg"):
+    for asset in ("style.css", "library.js", "analytics.js", "favicon.png", "paper.svg",
+                  "player.html"):
         if (WEB / asset).exists():
             shutil.copy(WEB / asset, out / asset)
 
@@ -997,7 +1112,20 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
         return None
 
 
+def check_recordings_only():
+    """--check-recordings: the catalogue's recordings, and YouTube's word on
+    their videos, without building anything."""
+    recordings = {record["id"]: record["recordings"] for record in load_catalogue()
+                  if record["recordings"]}
+    missing = check_videos(recordings)
+    log(f"recordings of {len(recordings)} pieces checked" +
+        (f"; videos missing: {', '.join(missing)}" if missing else ""))
+    return 1 if missing else 0
+
+
 def build(args):
+    if args.check_recordings:
+        return check_recordings_only()
     if args.pages_only:
         return build_pages(args)
     lilyport = Path(args.lilyport).resolve()
@@ -1067,11 +1195,16 @@ def build(args):
                     or (path.suffix == ".svg" and path != cached_preview(path.name.split(".")[0]))):
                 path.unlink()
 
+    built = {entry["id"] for entry in entries}
     index = {
         "schemaVersion": SCHEMA_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "site": SITE_URL,
         "scores": entries,
+        # Videos of the pieces being played, by score id, best first: only of
+        # the scores that built. An addition an older Orchestrion ignores.
+        "recordings": {record["id"]: record["recordings"] for record in records
+                       if record["recordings"] and record["id"] in built},
     }
     (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1) + "\n",
                                     encoding="utf-8")
@@ -1102,6 +1235,9 @@ def main():
     parser.add_argument("--pages-only", action="store_true",
                         help="write the pages again from the existing index.json, "
                              "without converting the scores")
+    parser.add_argument("--check-recordings", action="store_true",
+                        help="check the catalogue's recordings and ask YouTube whether "
+                             "their videos exist, without building")
     parser.add_argument("--out", default=str(ROOT / "_site"))
     parser.add_argument("--schema", help="MusicXML 4.0 musicxml.xsd (tools/fetch-schema.sh)")
     parser.add_argument("--only", nargs="+", metavar="ID", help="build these scores only")
@@ -1113,7 +1249,7 @@ def main():
     parser.add_argument("--keep-going", action="store_true",
                         help="publish the scores that pass even if others fail")
     args = parser.parse_args()
-    if not args.pages_only and not args.lilyport:
+    if not (args.pages_only or args.check_recordings) and not args.lilyport:
         parser.error("--lilyport is required")
     try:
         with build_lock():

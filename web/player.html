@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- The page Orchestrion plays a recording in: player.html?v=VIDEOID[&start=SECONDS].
+     YouTube's player refuses to play without a Referer (error 153), so it
+     needs a page of a real site. For the app only: not linked, not indexed. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex">
+<title>Rolls — player</title>
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+#player { display: block; width: 100%; height: 100%; border: 0; }
+</style>
+</head>
+<body>
+<div id="player"></div>
+<script>
+var query = new URLSearchParams(location.search), player;
+
+// What Orchestrion listens to on the console: the first state makes it swap
+// the thumbnail for the player; an error, offer the video in the browser.
+function report(what, value) { console.log('orchestrion-player:' + what + ':' + value); }
+
+// Orchestrion calls this when the performer starts playing, and when the
+// video closes.
+function pausePlayer() { if (player && player.pauseVideo) player.pauseVideo(); }
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    width: '100%',
+    height: '100%',
+    videoId: query.get('v'),
+    playerVars: {
+      autoplay: 1, playsinline: 1, rel: 0, fs: 1,
+      // YouTube's number keys would take those Orchestrion is played with.
+      disablekb: 1,
+      start: parseInt(query.get('start'), 10) || 0,
+      origin: location.origin
+    },
+    events: {
+      onStateChange: function (event) { report('state', event.data); },
+      onError: function (event) { report('error', event.data); }
+    }
+  });
+}
+
+var api = document.createElement('script');
+api.src = 'https://www.youtube.com/iframe_api';
+// Without YouTube's script there is nothing to play: 5 is its code for a
+// player that can't, which Orchestrion answers by offering the browser.
+api.onerror = function () { report('error', 5); };
+document.body.appendChild(api);
+</script>
+</body>
+</html>

@@ -31,6 +31,11 @@ elsewhere.
   `schemaVersion`; URLs in it are relative to it; each score's `version` is a
   hash of its MusicXML as lilyport wrote it, so Orchestrion downloads a score
   again only when its music changed.
+- `index.json` also has the `recordings` of the pieces (see *Adding a
+  recording*), and the site a `player.html`: the page Orchestrion plays a
+  YouTube video in (`player.html?v=VIDEOID[&start=SECONDS]`), since YouTube's
+  player only plays on a page of a real site. It is for the app only, and
+  kept out of search engines.
 - Each score also carries its opus (`<work-number>`) and difficulty
   (`<miscellaneous-field>`s `orchestrion-difficulty-rhythm`, `-notes` and
   `-method`), written in after conversion, so that Orchestrion shows them for
@@ -101,6 +106,31 @@ record, after `convert-ly`; the score's page says what was corrected:
 `replace` must occur exactly once in the file, so that a change of the
 source stops the build rather than going unnoticed. Prefer fixing the source
 upstream too.
+
+## Adding a recording
+
+Orchestrion shows videos of the open score being played. They are listed in
+the score's record, best first: the first is the one whose thumbnail
+Orchestrion shows, and the one a click plays.
+
+```json
+"recordings": [
+  {"url": "https://www.youtube.com/watch?v=VIDEOID", "performer": "Name"},
+  {"url": "https://youtu.be/VIDEOID?t=30", "performer": "Other name"}
+]
+```
+
+The build gathers them in `index.json`, under `recordings`, by score id. A
+YouTube link, however it was copied, is written there as
+`https://www.youtube.com/watch?v=ID[&t=SECONDS]`, and plays in the app; any
+other `https` link is opened in the browser. The build refuses an entry
+Orchestrion couldn't use (no performer, a link that isn't `https`, a YouTube
+link that isn't a video's) and the same video twice. To also ask YouTube
+whether the videos exist:
+
+```sh
+python3 tools/build.py --check-recordings
+```
 
 ## Licence
 
