@@ -32,7 +32,8 @@ reviewed by hand on a page, and what was kept is written into the catalogue.
    Claude to publish `page.html` to the review's artifact,
    **https://claude.ai/artifact/J7wDcFrULPt7FG8xBKgFqR** (publishing to that
    URL keeps the link and what was entered). On the page: tick the videos to
-   keep, name the performer (it starts as the channel's name), give the start
+   keep, name the performer (it starts as the pianist the title names, if
+   `review_page.py` can tell, else the channel's name: check it), give the start
    and end in the video where the piece is only a part of it, and write notes
    (a wrong piece, no repeats, …). It is all kept in the artifact's database,
    collection `review`, one document per piece id (`picked`: {video:

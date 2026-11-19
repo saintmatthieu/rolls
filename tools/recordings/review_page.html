@@ -157,7 +157,7 @@ const watchUrl = (vid, t, e) => "https://www.youtube.com/watch?v=" + vid + (t ? 
 const ytT = (s, k) => { try { const u = new URL(s); return parseT((k ? u.searchParams.get(k) : u.searchParams.get("t") || u.searchParams.get("start")) || "") || 0 } catch (e) { return 0 } };
 const ytId = (s) => { const m = String(s).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : (/^[\w-]{11}$/.test(s) ? s : null) };
 const pieceState = (id) => { const s = (st[id] ||= {}); s.picked ||= {}; s.extra ||= []; s.notes ||= {}; s.starts ||= {}; s.ends ||= {}; s.note ||= ""; return s };
-/* A video's title, channel, length and views: one record, whichever piece it's offered for. */
+/* A video's title, channel, length, views and the performer its title names (review_page.py guesses it): one record, whichever piece it's offered for. */
 const info = (c) => Object.assign({ title: "youtu.be/" + c.id, channel: "", length: "", views: "" }, DATA.meta[c.id] || {}, { id: c.id, shared: c.shared, manual: c.manual && !DATA.meta[c.id] });
 const allCands = (p) => { const own = p.cands.map(info), ids = new Set(own.map(c => c.id));
   return [...own, ...(((st[p.id] && st[p.id].extra) || []).filter(e => !ids.has(e.id)).map(e => info({ id: e.id, manual: true })))] };
@@ -211,8 +211,8 @@ function render() {
       const on = !!ps.picked[c.id];
       const box = el("input", { type: "checkbox", checked: on, id: "cb-" + p.id + "-" + c.id });
       box.setAttribute("aria-label", "Keep " + c.title);
-      box.onchange = () => { if (box.checked) ps.picked[c.id] = ps.picked[c.id] || { performer: performerOf(c.id, c.channel) }; else delete ps.picked[c.id]; persist(p.id); render() };
-      const perf = el("input", { className: "perf who", id: "pf-" + p.id + "-" + c.id, placeholder: "Performer", value: performerOf(c.id, c.channel) });
+      box.onchange = () => { if (box.checked) ps.picked[c.id] = ps.picked[c.id] || { performer: performerOf(c.id, c.performer || c.channel) }; else delete ps.picked[c.id]; persist(p.id); render() };
+      const perf = el("input", { className: "perf who", id: "pf-" + p.id + "-" + c.id, placeholder: "Performer", value: performerOf(c.id, c.performer || c.channel) });
       perf.dataset.vid = c.id;
       perf.setAttribute("aria-label", "Performer");
       perf.oninput = () => { ps.picked[c.id] = { performer: perf.value }; box.checked = true; setPerformer(c.id, perf.value); persist(p.id); updateStats() };
@@ -261,7 +261,7 @@ function buildJson() {
     const sel = picked(p); if (!sel.length) continue;
     const list = rec[p.id] || (rec[p.id] = []);
     for (const c of sel) { const url = watchUrl(c.id, startOf(p.id, c.id), endOf(p.id, c.id));
-      if (!list.some(r => r.url === url)) list.push({ url, performer: performerOf(c.id, c.channel) }) }
+      if (!list.some(r => r.url === url)) list.push({ url, performer: performerOf(c.id, c.performer || c.channel) }) }
   }
   return JSON.stringify({ recordings: rec }, null, 2);
 }
