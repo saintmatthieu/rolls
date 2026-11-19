@@ -22,5 +22,15 @@
       "role": "Engraved for the Mutopia Project by",
       "name": "Chris Sawer"
     }
+  ],
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=w--SfVE2A3c&t=542&end=829",
+      "performer": "Janice Carissa"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=N-gMvSPL9Vw",
+      "performer": "Fabian Müller"
+    }
   ]
 }
