@@ -23,5 +23,15 @@
       "role": "Engraved for the Mutopia Project by",
       "name": "Hajo Dezelski"
     }
+  ],
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=8dtoi-Unz08&t=92&end=298",
+      "performer": "Laurens de Man"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=UjRBNFhP_ac",
+      "performer": "OldFirstConcerts"
+    }
   ]
 }

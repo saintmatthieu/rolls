@@ -17,5 +17,11 @@
   },
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Allen Garvin"}
+  ],
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=CbN7KezIuWo&end=90",
+      "performer": "Piano Adventures"
+    }
   ]
 }
