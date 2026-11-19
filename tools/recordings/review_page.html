@@ -1,0 +1,285 @@
+<title>Rolls Recordings Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one reading column of pieces grouped by composer; a sticky toolbar on top, a sticky export bar at the bottom. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1b2230; --muted: #5f6b7d; --line: #dde2ea;
+  --accent: #23607a; --accent-soft: #e2eef3; --ok: #2f7a4f; --warn: #a3631a; --none: #8a93a2;
+  --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1a2029; --fg: #e3e8ef; --muted: #98a3b3; --line: #2b3340;
+  --accent: #6fb4d0; --accent-soft: #1f3540; --ok: #6cc193; --warn: #e0a35a; --none: #7d8696; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e3e8ef; --muted: #98a3b3; --line: #2b3340;
+  --accent: #6fb4d0; --accent-soft: #1f3540; --ok: #6cc193; --warn: #e0a35a; --none: #7d8696; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+.wrap { max-width: 920px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+header { padding-block: 28px 8px }
+h1 { font-family: var(--display); font-weight: 600; font-size: 26px; margin: 0 0 6px; text-wrap: balance }
+.lede { color: var(--muted); margin: 0; max-width: 65ch }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 12px }
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.stats { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: auto; font-size: 13px }
+.stats b { color: var(--fg); font-weight: 600 }
+.chip { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg) }
+#q { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 6px 10px; font: inherit; width: 200px; max-width: 100% }
+main { padding-block: 8px 120px }
+h2 { font-family: var(--display); font-weight: 500; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 28px 0 8px }
+.piece { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; display: grid; gap: 8px }
+.head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline }
+.head .t { font-weight: 600; min-width: 0 }
+.head .op { color: var(--muted) }
+.head .id { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: auto }
+.pill { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; border: 1px solid currentColor }
+.pill.none { color: var(--warn) } .pill.pending { color: var(--none) } .pill.have { color: var(--ok) }
+.cand { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; gap: 4px 10px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--line) }
+.cand input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent) }
+.cand a { color: var(--accent); text-decoration: none; font-weight: 500; overflow-wrap: anywhere }
+.cand a:hover, .cand a:focus-visible { text-decoration: underline }
+.meta { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums }
+.fields { display: flex; gap: 6px; min-width: 0 }
+.fields .start { flex: 0 0 76px; font-variant-numeric: tabular-nums }
+.perf { border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 6px; padding: 4px 8px; font: inherit; font-size: 13px; width: 100% }
+.cand.on { background: var(--accent-soft); margin-inline: -14px; padding-inline: 14px }
+.add { display: flex; flex-wrap: wrap; gap: 6px }
+.add input { flex: 1 1 220px; min-width: 0 }
+.add button, .linkbtn { font: inherit; font-size: 13px; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 2px 0 }
+.empty { color: var(--muted); font-size: 13px }
+footer.export { position: fixed; inset: auto 0 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px)) }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.primary { font: inherit; font-weight: 600; background: var(--accent); color: var(--bg); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer }
+#out { width: 100%; height: 140px; font-family: var(--mono); font-size: 12px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px }
+.note { grid-column: 2 / -1; width: 100%; min-height: 34px; resize: vertical; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 6px; padding: 5px 8px; font: inherit; font-size: 13px }
+.note.filled { border-color: var(--warn) }
+.piece > .note { grid-column: auto }
+.notebtn { grid-column: 2 / -1; justify-self: start; font: inherit; font-size: 12px; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 }
+.notebtn:hover { color: var(--accent) }
+.pill.noted { color: var(--warn) }
+#sync { font-size: 12px; color: var(--muted) }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+@media (max-width: 640px) { .cand { grid-template-columns: auto minmax(0, 1fr) } .cand .fields { grid-column: 2 } .head .id { margin-left: 0; width: 100% } }
+</style>
+
+<header class="wrap">
+  <h1>Rolls Recordings Review</h1>
+  <p class="lede">YouTube candidates for the scores on rolls.orchestrion.app. Every link here had no ads when checked (signed out, US) and can be embedded. Tick the ones to keep, set the performer's name and, where the piece is only part of the video, its start and end times, then copy the <code>recordings</code> block for the index. Use the notes to say what's wrong with a link (another piece, harpsichord, a different number) or what a piece needs. Ticks and notes are saved with this page, so Claude can read them.</p>
+</header>
+<div class="bar"><div class="wrap">
+  <span class="stats" id="stats"></span>
+  <button class="chip" data-f="all" aria-pressed="true">All</button>
+  <button class="chip" data-f="found" aria-pressed="false">With candidates</button>
+  <button class="chip" data-f="none" aria-pressed="false">None found</button>
+  <button class="chip" data-f="todo" aria-pressed="false">Not ticked yet</button>
+  <button class="chip" data-f="noted" aria-pressed="false">With notes</button>
+  <input id="q" type="search" placeholder="Filter by title or id" aria-label="Filter by title or id">
+</div></div>
+<main class="wrap" id="list"></main>
+<footer class="export"><div class="wrap">
+  <button class="primary" id="copy">Copy recordings JSON</button>
+  <span class="stats" id="selcount"></span>
+  <button class="linkbtn" id="toggleOut">Show JSON</button>
+  <span id="sync">Connecting to saved review…</span>
+  <textarea id="out" hidden readonly aria-label="recordings JSON"></textarea>
+</div></footer>
+
+<script>
+const DATA = /*DATA*/null;
+const KEY = "rolls-recordings-review";
+let st = {};
+try { st = JSON.parse(localStorage.getItem(KEY) || "{}") || {} } catch (e) { st = {} }
+const localAtStart = JSON.parse(JSON.stringify(st));
+const saveLocal = () => { try { localStorage.setItem(KEY, JSON.stringify(st)) } catch (e) {} };
+let filter = "all", query = "";
+const openNotes = new Set();
+
+/* Shared store: one document per piece in "review". */
+let db = null, coll = null;
+const timers = {}, writing = {}, again = {};
+const syncEl = () => document.getElementById("sync");
+function persist(pid) {
+  saveLocal();
+  if (!coll) return;
+  clearTimeout(timers[pid]);
+  timers[pid] = setTimeout(() => flush(pid), 600);
+}
+async function flush(pid) {
+  delete timers[pid];
+  if (writing[pid]) { again[pid] = true; return }
+  writing[pid] = true;
+  try { await coll.doc(pid).set(JSON.parse(JSON.stringify(st[pid] || {}))); syncEl().textContent = "Saved" }
+  catch (e) {
+    if (e && e.code === "unavailable") { setTimeout(() => flush(pid), 800 + Math.random() * 800) }
+    else syncEl().textContent = e && e.code === "invalid_argument" ? "You can't save changes on this page" : "Couldn't save: " + ((e && e.message) || "error");
+  }
+  writing[pid] = false;
+  if (again[pid]) { delete again[pid]; flush(pid) }
+}
+const busy = (pid) => timers[pid] || writing[pid];
+
+(async () => {
+  db = await (window.claude && window.claude.use ? window.claude.use("db") : null);
+  if (!db) { syncEl().textContent = "Saved in this browser only"; return }
+  coll = db.collection("review");
+  let migrated = false;
+  const slow = setTimeout(() => { syncEl().textContent = "Saved review can't be reached yet" }, 10000);
+  coll.onSnapshot((snap) => {
+    let changed = false;
+    for (const d of snap.docs) {
+      if (d.metadata.hasPendingWrites || busy(d.id)) continue;
+      const v = JSON.parse(JSON.stringify(d.data() || {}));
+      if (JSON.stringify(v) !== JSON.stringify(st[d.id] || {})) { st[d.id] = v; changed = true }
+    }
+    if (!snap.metadata.fromCache) {
+      clearTimeout(slow); syncEl().textContent = "Saved with this page";
+      if (!migrated) {
+        migrated = true;
+        const inDb = new Set(snap.docs.map(d => d.id));
+        for (const pid of Object.keys(localAtStart)) if (!inDb.has(pid) && hasAny(localAtStart[pid])) { st[pid] = localAtStart[pid]; persist(pid); changed = true }
+      }
+    }
+    if (changed) { saveLocal(); render() }
+  }, (e) => { clearTimeout(slow); syncEl().textContent = "Saved in this browser only" });
+})();
+
+const hasAny = (s) => s && (Object.keys(s.picked || {}).length || (s.extra || []).length || s.note || Object.values(s.notes || {}).some(Boolean));
+const parseT = (s) => { s = String(s || "").trim(); if (!s) return 0; let m = s.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/); if (m && m[0]) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0); m = s.match(/^(?:(\d+):)?(\d{1,2}):(\d{2})$/); if (m) return (+m[1] || 0) * 3600 + +m[2] * 60 + +m[3]; return NaN };
+const fmtT = (n) => { if (!n) return ""; const h = Math.floor(n / 3600), m = Math.floor(n / 60) % 60, s = String(n % 60).padStart(2, "0"); return h ? h + ":" + String(m).padStart(2, "0") + ":" + s : m + ":" + s };
+const endOf = (pid, vid) => { const s = st[pid]; return (s && s.ends && s.ends[vid]) || 0 };
+const startOf = (pid, vid) => { const s = st[pid]; return (s && s.starts && s.starts[vid]) || 0 };
+const watchUrl = (vid, t, e) => "https://www.youtube.com/watch?v=" + vid + (t ? "&t=" + t : "") + (e ? "&end=" + e : "");
+const ytT = (s, k) => { try { const u = new URL(s); return parseT((k ? u.searchParams.get(k) : u.searchParams.get("t") || u.searchParams.get("start")) || "") || 0 } catch (e) { return 0 } };
+const ytId = (s) => { const m = String(s).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : (/^[\w-]{11}$/.test(s) ? s : null) };
+const pieceState = (id) => { const s = (st[id] ||= {}); s.picked ||= {}; s.extra ||= []; s.notes ||= {}; s.starts ||= {}; s.ends ||= {}; s.note ||= ""; return s };
+/* A video's title, channel, length and views: one record, whichever piece it's offered for. */
+const info = (c) => Object.assign({ title: "youtu.be/" + c.id, channel: "", length: "", views: "" }, DATA.meta[c.id] || {}, { id: c.id, shared: c.shared, manual: c.manual && !DATA.meta[c.id] });
+const allCands = (p) => { const own = p.cands.map(info), ids = new Set(own.map(c => c.id));
+  return [...own, ...(((st[p.id] && st[p.id].extra) || []).filter(e => !ids.has(e.id)).map(e => info({ id: e.id, manual: true })))] };
+/* A video's performer, as named wherever it's ticked: one name for all its pieces. */
+const performerOf = (vid, fallback) => { for (const s of Object.values(st)) { const n = s && s.picked && s.picked[vid] && s.picked[vid].performer; if (n && n.trim()) return n.trim() } return fallback || "" };
+function setPerformer(vid, name) {
+  for (const [pid, s] of Object.entries(st)) if (s && s.picked && s.picked[vid] && s.picked[vid].performer !== name) { s.picked[vid].performer = name; persist(pid) }
+  document.querySelectorAll('input[data-vid="' + vid + '"].who').forEach(i => { if (i !== document.activeElement) i.value = name });
+}
+const picked = (p) => allCands(p).filter(c => st[p.id] && st[p.id].picked && st[p.id].picked[c.id]);
+const noted = (p) => { const s = st[p.id]; return !!(s && (s.note || Object.values(s.notes || {}).some(Boolean))) };
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids.filter(k => k != null)); return e };
+
+function noteBox(pid, key, label, get, set) {
+  const id = "note-" + pid + "-" + key, val = get();
+  if (!val && !openNotes.has(id)) {
+    const b = el("button", { className: "notebtn", textContent: "+ " + label });
+    b.onclick = () => { openNotes.add(id); render(); const t = document.getElementById(id); t && t.focus() };
+    return b;
+  }
+  const t = el("textarea", { className: "note" + (val ? " filled" : ""), id, value: val, placeholder: label });
+  t.setAttribute("aria-label", label);
+  t.oninput = () => { set(t.value); t.classList.toggle("filled", !!t.value.trim()); persist(pid); updateStats() };
+  return t;
+}
+
+function render() {
+  const a = document.activeElement, focusId = a && a.id, s0 = a && a.selectionStart, s1 = a && a.selectionEnd;
+  const list = document.getElementById("list"); list.textContent = "";
+  let lastComposer = null;
+  for (const p of DATA.pieces) {
+    const hay = (p.title + " " + p.id + " " + p.composer).toLowerCase();
+    if (query && !hay.includes(query)) continue;
+    const n = allCands(p).length, have = (DATA.existing[p.id] || []).length;
+    if (filter === "found" && !n) continue;
+    if (filter === "none" && (p.status !== "none" || n)) continue;
+    if (filter === "todo" && (picked(p).length || !n)) continue;
+    if (filter === "noted" && !noted(p)) continue;
+    if (p.composer !== lastComposer) { list.append(el("h2", { textContent: p.composer })); lastComposer = p.composer }
+    const ps = pieceState(p.id);
+    const card = el("section", { className: "piece" });
+    card.append(el("div", { className: "head" },
+      el("span", { className: "t", textContent: p.title }),
+      p.opus ? el("span", { className: "op", textContent: p.opus }) : null,
+      have ? el("span", { className: "pill have", textContent: "in catalogue: " + DATA.existing[p.id].map(r => r.performer).join(", ") }) : null,
+      p.status === "none" && !n ? el("span", { className: "pill none", textContent: "no ad-free match" }) : null,
+      p.status === "pending" ? el("span", { className: "pill pending", textContent: "still searching" }) : null,
+      noted(p) ? el("span", { className: "pill noted", textContent: "noted" }) : null,
+      el("span", { className: "id", textContent: p.id })));
+    for (const c of allCands(p)) {
+      const on = !!ps.picked[c.id];
+      const box = el("input", { type: "checkbox", checked: on, id: "cb-" + p.id + "-" + c.id });
+      box.setAttribute("aria-label", "Keep " + c.title);
+      box.onchange = () => { if (box.checked) ps.picked[c.id] = ps.picked[c.id] || { performer: performerOf(c.id, c.channel) }; else delete ps.picked[c.id]; persist(p.id); render() };
+      const perf = el("input", { className: "perf who", id: "pf-" + p.id + "-" + c.id, placeholder: "Performer", value: performerOf(c.id, c.channel) });
+      perf.dataset.vid = c.id;
+      perf.setAttribute("aria-label", "Performer");
+      perf.oninput = () => { ps.picked[c.id] = { performer: perf.value }; box.checked = true; setPerformer(c.id, perf.value); persist(p.id); updateStats() };
+      perf.onchange = () => { const v = perf.value.trim(); if (v !== perf.value) { perf.value = v; ps.picked[c.id] = { performer: v }; setPerformer(c.id, v); persist(p.id) } };
+      const start = el("input", { className: "perf start", id: "st-" + p.id + "-" + c.id, placeholder: "Start", value: fmtT(startOf(p.id, c.id)), title: "Where the piece starts in the video: 1:23, 1h2m3s or seconds" });
+      start.setAttribute("aria-label", "Start time");
+      start.onchange = () => { const t = parseT(start.value); if (isNaN(t)) { start.setCustomValidity("Write it as 1:23, 1h2m3s or seconds"); start.reportValidity(); return }
+        start.setCustomValidity(""); if (t) ps.starts[c.id] = t; else delete ps.starts[c.id]; persist(p.id); render() };
+      const end = el("input", { className: "perf start", id: "en-" + p.id + "-" + c.id, placeholder: "End", value: fmtT(endOf(p.id, c.id)), title: "Where the piece stops in the video, if before its end: 1:23, 1h2m3s or seconds" });
+      end.setAttribute("aria-label", "End time");
+      end.onchange = () => { const t = parseT(end.value);
+        if (isNaN(t)) { end.setCustomValidity("Write it as 1:23, 1h2m3s or seconds"); end.reportValidity(); return }
+        if (t && t <= startOf(p.id, c.id)) { end.setCustomValidity("The end must be after the start"); end.reportValidity(); return }
+        end.setCustomValidity(""); if (t) ps.ends[c.id] = t; else delete ps.ends[c.id]; persist(p.id); render() };
+      card.append(el("div", { className: "cand" + (on ? " on" : "") }, box,
+        el("div", {}, el("a", { href: watchUrl(c.id, startOf(p.id, c.id)), target: "_blank", rel: "noopener", textContent: c.title }),
+          el("div", { className: "meta", textContent: [c.channel, c.length, c.views && c.views + " views", c.shared && "whole set", c.manual && "added by hand"].filter(Boolean).join(" · ") })),
+        el("div", { className: "fields" }, start, end, perf),
+        noteBox(p.id, c.id, "Note on this link", () => ps.notes[c.id] || "", (v) => { if (v) ps.notes[c.id] = v; else delete ps.notes[c.id] })));
+    }
+    if (!n && p.status === "none") card.append(el("div", { className: "empty", textContent: "Every candidate checked had ads, or couldn't be embedded." }));
+    card.append(noteBox(p.id, "piece", "Note on this piece", () => ps.note || "", (v) => { ps.note = v }));
+    const addRow = el("div", { className: "add" });
+    const addBtn = el("button", { textContent: "+ Add a link" });
+    addBtn.onclick = () => {
+      addRow.textContent = "";
+      const u = el("input", { className: "perf", placeholder: "YouTube link", id: "add-" + p.id });
+      const go = el("button", { textContent: "Add" });
+      go.onclick = () => { const id = ytId(u.value.trim()); if (!id) { u.setCustomValidity("Not a YouTube link"); u.reportValidity(); return }
+        if (!allCands(p).some(c => c.id === id)) ps.extra.push({ id });
+        const t = ytT(u.value.trim()); if (t) ps.starts[id] = t; const e = ytT(u.value.trim(), "end"); if (e > t) ps.ends[id] = e;
+        ps.picked[id] = ps.picked[id] || { performer: "" }; persist(p.id); render() };
+      addRow.append(u, go); u.focus();
+    };
+    addRow.append(addBtn); card.append(addRow);
+    list.append(card);
+  }
+  if (!list.children.length) list.append(el("p", { className: "empty", textContent: "No piece matches this filter." }));
+  if (focusId) { const f = document.getElementById(focusId); if (f && f !== document.activeElement) { f.focus(); try { if (s0 != null) f.setSelectionRange(s0, s1) } catch (e) {} } }
+  updateStats();
+}
+
+function buildJson() {
+  const rec = JSON.parse(JSON.stringify(DATA.existing));
+  for (const p of DATA.pieces) {
+    const sel = picked(p); if (!sel.length) continue;
+    const list = rec[p.id] || (rec[p.id] = []);
+    for (const c of sel) { const url = watchUrl(c.id, startOf(p.id, c.id), endOf(p.id, c.id));
+      if (!list.some(r => r.url === url)) list.push({ url, performer: performerOf(c.id, c.channel) }) }
+  }
+  return JSON.stringify({ recordings: rec }, null, 2);
+}
+function updateStats() {
+  const done = DATA.pieces.filter(p => p.status !== "pending").length;
+  const withC = DATA.pieces.filter(p => p.cands.length).length;
+  const cands = DATA.pieces.reduce((a, p) => a + p.cands.length, 0);
+  document.getElementById("stats").innerHTML = `<b>${done}</b> of ${DATA.pieces.length} searched · <b>${withC}</b> with candidates · ${cands} links`;
+  const sel = DATA.pieces.reduce((a, p) => a + picked(p).length, 0), selP = DATA.pieces.filter(p => picked(p).length).length;
+  const nN = DATA.pieces.filter(noted).length;
+  document.getElementById("selcount").textContent = `${sel} ticked across ${selP} pieces · ${nN} noted`;
+  const out = document.getElementById("out"); if (!out.hidden) out.value = buildJson();
+}
+document.querySelectorAll(".chip").forEach(b => b.onclick = () => { filter = b.dataset.f; document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b)); render() });
+document.getElementById("q").oninput = (e) => { query = e.target.value.trim().toLowerCase(); render() };
+document.getElementById("toggleOut").onclick = (e) => { const o = document.getElementById("out"); o.hidden = !o.hidden; e.target.textContent = o.hidden ? "Show JSON" : "Hide JSON"; updateStats() };
+document.getElementById("copy").onclick = (e) => { const t = buildJson(), btn = e.target, o = document.getElementById("out");
+  navigator.clipboard.writeText(t).then(() => { btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy recordings JSON", 1500) })
+    .catch(() => { o.hidden = false; o.value = t; o.select(); document.getElementById("toggleOut").textContent = "Hide JSON" }) };
+render();
+</script>

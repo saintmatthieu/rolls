@@ -138,6 +138,9 @@ whether the videos exist:
 python3 tools/build.py --check-recordings
 ```
 
+How the recordings are found and reviewed, and what makes one good enough:
+[tools/recordings/README.md](tools/recordings/README.md).
+
 ## Licence
 
 The code is GPL-3.0-or-later. Each score keeps the licence of its source
