@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- The page Orchestrion plays a recording in: player.html?v=VIDEOID[&start=SECONDS].
+<!-- The page Orchestrion plays a recording in: player.html?v=VIDEOID[&start=SECONDS][&end=SECONDS].
      YouTube's player refuses to play without a Referer (error 153), so it
      needs a page of a real site. For the app only: not linked, not indexed. -->
 <html lang="en">
@@ -18,6 +18,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 <div id="player"></div>
 <script>
 var query = new URLSearchParams(location.search), player;
+// Where the piece is in the video: a piece can be only a part of it.
+var start = parseInt(query.get('start'), 10) || 0;
+var end = parseInt(query.get('end'), 10) || 0;
 
 // What Orchestrion listens to on the console: the first state makes it swap
 // the thumbnail for the player; an error, offer the video in the browser.
@@ -28,19 +31,27 @@ function report(what, value) { console.log('orchestrion-player:' + what + ':' + 
 function pausePlayer() { if (player && player.pauseVideo) player.pauseVideo(); }
 
 function onYouTubeIframeAPIReady() {
+  var vars = {
+    autoplay: 1, playsinline: 1, rel: 0, fs: 1,
+    // YouTube's number keys would take those Orchestrion is played with.
+    disablekb: 1,
+    start: start,
+    origin: location.origin
+  };
+  if (end) vars.end = end;
   player = new YT.Player('player', {
     width: '100%',
     height: '100%',
     videoId: query.get('v'),
-    playerVars: {
-      autoplay: 1, playsinline: 1, rel: 0, fs: 1,
-      // YouTube's number keys would take those Orchestrion is played with.
-      disablekb: 1,
-      start: parseInt(query.get('start'), 10) || 0,
-      origin: location.origin
-    },
+    playerVars: vars,
     events: {
-      onStateChange: function (event) { report('state', event.data); },
+      onStateChange: function (event) {
+        report('state', event.data);
+        // Stopped at the end of the piece: played again, it's the piece
+        // again, not the video from its start.
+        if (end && event.data === YT.PlayerState.ENDED)
+          player.cueVideoById({ videoId: query.get('v'), startSeconds: start, endSeconds: end });
+      },
       onError: function (event) { report('error', event.data); }
     }
   });

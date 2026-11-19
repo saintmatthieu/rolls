@@ -118,7 +118,7 @@ YOUTUBE_OEMBED = "https://www.youtube.com/oembed?format=json&url="
 
 
 def youtube_start(text):
-    """The seconds of a link's t= or start= ("412", "412s", "6m52s")."""
+    """The seconds of a link's t=, start= or end= ("412", "412s", "6m52s")."""
     match = re.fullmatch(r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?", text)
     if not text or not match:
         raise BuildError(f"a start time that isn't understood ({text!r})")
@@ -128,8 +128,9 @@ def youtube_start(text):
 
 def canonical_recording_url(url):
     """The URL as index.json gives it: a YouTube link, however it was copied,
-    in the one form https://www.youtube.com/watch?v=ID[&t=SECONDS]; any other
-    link as it is."""
+    in the one form https://www.youtube.com/watch?v=ID[&t=SECONDS][&end=SECONDS];
+    any other link as it is. end= is Orchestrion's, not YouTube's (whose pages
+    ignore it): where to stop, for a piece that is only a part of the video."""
     if url != url.strip() or re.search(r"\s", url):
         raise BuildError("whitespace in the URL")
     parts = urllib.parse.urlsplit(url)
@@ -152,7 +153,12 @@ def canonical_recording_url(url):
         raise BuildError(f"not a YouTube video id ({video!r})")
     start = query.get("t") or query.get("start")
     seconds = youtube_start(start[0]) if start else 0
-    return YOUTUBE_WATCH + video + (f"&t={seconds}" if seconds else "")
+    end = query.get("end")
+    end_seconds = youtube_start(end[0]) if end else 0
+    if end and end_seconds <= seconds:
+        raise BuildError(f"an end ({end[0]}) that isn't after the start")
+    return (YOUTUBE_WATCH + video + (f"&t={seconds}" if seconds else "") +
+            (f"&end={end_seconds}" if end else ""))
 
 
 def check_recordings(recordings):

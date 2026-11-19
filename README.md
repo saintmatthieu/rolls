@@ -33,7 +33,7 @@ elsewhere.
   again only when its music changed.
 - `index.json` also has the `recordings` of the pieces (see *Adding a
   recording*), and the site a `player.html`: the page Orchestrion plays a
-  YouTube video in (`player.html?v=VIDEOID[&start=SECONDS]`), since YouTube's
+  YouTube video in (`player.html?v=VIDEOID[&start=SECONDS][&end=SECONDS]`), since YouTube's
   player only plays on a page of a real site. It is for the app only, and
   kept out of search engines.
 - Each score also carries its opus (`<work-number>`) and difficulty
@@ -116,16 +116,22 @@ Orchestrion shows, and the one a click plays.
 ```json
 "recordings": [
   {"url": "https://www.youtube.com/watch?v=VIDEOID", "performer": "Name"},
-  {"url": "https://youtu.be/VIDEOID?t=30", "performer": "Other name"}
+  {"url": "https://youtu.be/VIDEOID?t=30", "performer": "Other name"},
+  {"url": "https://youtu.be/VIDEOID?t=1m30s&end=3m12s", "performer": "Third name"}
 ]
 ```
 
+`t=` is where the piece starts in the video, and `end=` where it stops, for
+a piece that is only a part of it (a variation, a movement, one of a set).
+`end=` is Orchestrion's: YouTube's own pages ignore it.
+
 The build gathers them in `index.json`, under `recordings`, by score id. A
 YouTube link, however it was copied, is written there as
-`https://www.youtube.com/watch?v=ID[&t=SECONDS]`, and plays in the app; any
+`https://www.youtube.com/watch?v=ID[&t=SECONDS][&end=SECONDS]`, and plays in the app; any
 other `https` link is opened in the browser. The build refuses an entry
 Orchestrion couldn't use (no performer, a link that isn't `https`, a YouTube
-link that isn't a video's) and the same video twice. To also ask YouTube
+link that isn't a video's, an end that isn't after the start) and the same
+video twice. To also ask YouTube
 whether the videos exist:
 
 ```sh
