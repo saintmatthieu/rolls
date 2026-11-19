@@ -18,5 +18,11 @@
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Keith OHara"}
   ],
-  "lilyport": {"tempo": "4.=42"}
+  "lilyport": {"tempo": "4.=42"},
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=c977QdbTImU",
+      "performer": "Pascal Rogé"
+    }
+  ]
 }

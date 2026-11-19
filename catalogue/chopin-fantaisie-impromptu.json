@@ -17,5 +17,11 @@
   },
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Guy D. Lederfein"}
+  ],
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=CTecRUbAvvI",
+      "performer": "Daniil Trifonov"
+    }
   ]
 }
