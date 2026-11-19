@@ -30,7 +30,10 @@ elsewhere.
 - `index.json` is what Orchestrion and the web pages read. It has a
   `schemaVersion`; URLs in it are relative to it; each score's `version` is a
   hash of its MusicXML as lilyport wrote it, so Orchestrion downloads a score
-  again only when its music changed.
+  again only when its music changed; its `preview` is the SVG of its first
+  system (`url`, `width`, `height` and `staffSpace`, the gap between a
+  staff's lines, in the SVG's units), which Orchestrion's shelf shows at its
+  own staff size until the score is downloaded.
 - `index.json` also has the `recordings` of the pieces (see *Adding a
   recording*), and the site a `player.html`: the page Orchestrion plays a
   YouTube video in (`player.html?v=VIDEOID[&start=SECONDS][&end=SECONDS]`), since YouTube's

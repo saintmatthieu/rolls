@@ -432,6 +432,30 @@ def svg_size(path):
     return int(float(root.get("width"))), int(float(root.get("height")))
 
 
+def svg_staff_space(path):
+    """The distance between a staff's lines in an SVG preview, in its units:
+    the smallest gap between the horizontal strokes of the same length that
+    LilyPond draws a staff with (a score's staff size is its own); None if it
+    has no staff. Orchestrion draws the preview at its own staff size with it."""
+    gaps = []
+    lines = {}
+    for element in ET.parse(path).getroot().iter("{http://www.w3.org/2000/svg}path"):
+        match = re.fullmatch(r"\s*M ([-\d.]+) ([-\d.]+) L ([-\d.]+) ([-\d.]+)\s*",
+                             element.get("d", ""))
+        transform = re.fullmatch(r"matrix\(([^)]*)\)", element.get("transform", ""))
+        if not (element.get("stroke") and match and transform):
+            continue
+        x1, y1, x2, y2 = map(float, match.groups())
+        a, b, c, d, e, f = map(float, transform.group(1).split(","))
+        if y1 != y2 or b or c:
+            continue
+        lines.setdefault((x1, x2, a, d, e, f), []).append(y1 * d + f)
+    for ys in lines.values():
+        ys.sort()
+        gaps += [low - high for high, low in zip(ys, ys[1:]) if low - high > 0]
+    return round(min(gaps), 3) if gaps else None
+
+
 def musicxml_text(mxl):
     """The score document inside a compressed MusicXML file."""
     with zipfile.ZipFile(mxl) as archive:
@@ -542,7 +566,7 @@ def measures(xml_bytes):
     }
 
 
-def index_entry(record, mxl, xml_bytes, version, levels):
+def index_entry(record, mxl, xml_bytes, version, levels, preview):
     source = record["source"]
     entry = {
         "id": record["id"],
@@ -562,6 +586,10 @@ def index_entry(record, mxl, xml_bytes, version, levels):
         **({"corrections": [fix["why"] for fix in record["fixes"]]} if record.get("fixes") else {}),
         # Relative to index.json, so that the site works under any address.
         "musicxml": f"scores/{record['id']}.mxl",
+        # Its first system (render_preview()), which Orchestrion's shelf
+        # shows at its own staff size: its size and the gap between a
+        # staff's lines, in its units.
+        "preview": {"url": f"previews/{record['id']}.svg", **preview},
         "page": f"s/{record['id']}/",
         # Orchestrion downloads the score again when this changes (see
         # build()).
@@ -1109,7 +1137,10 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
             render_preview(record, main or prepare_source(record, repo, convert_ly, work),
                            convert_ly.with_name("lilypond"), lilyport, preview)
         shutil.copyfile(preview, out / "previews" / f"{record['id']}.svg")
-        entry = index_entry(record, mxl, xml_bytes, version, levels)
+        width, height = svg_size(preview)
+        entry = index_entry(record, mxl, xml_bytes, version, levels,
+                            {"width": width, "height": height,
+                             **({"staffSpace": space} if (space := svg_staff_space(preview)) else {})})
         log("    ok")
         return entry
     except (BuildError, subprocess.CalledProcessError, OSError, ET.ParseError) as error:
