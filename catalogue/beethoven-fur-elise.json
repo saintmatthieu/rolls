@@ -17,5 +17,11 @@
   },
   "credits": [
     {"role": "Engraved for the Mutopia Project by", "name": "Stelios Samelis"}
+  ],
+  "recordings": [
+    {
+      "url": "https://www.youtube.com/watch?v=wKvKiN1wYHw",
+      "performer": "Paul Barton"
+    }
   ]
 }
