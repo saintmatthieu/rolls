@@ -1,0 +1,30 @@
+{
+  "title": "Nocturne in D-flat major",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 27 No. 2",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 486,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O27/chopin-nocturne-8/chopin-nocturne-8.ly",
+    "edition": "Durand, 1915 (edited by Debussy)"
+  },
+  "license": {
+    "name": "CC BY-SA 3.0",
+    "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Scott Horne"
+    },
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Keith OHara"
+    }
+  ]
+}

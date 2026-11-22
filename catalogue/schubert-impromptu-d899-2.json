@@ -1,0 +1,26 @@
+{
+  "title": "Impromptu in E-flat major",
+  "composer": "Franz Schubert",
+  "opus": "D. 899 No. 2",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1551,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchubertF/D899/SchubertF-D899-2-Impromptu/SchubertF-D899-2-Impromptu.ly",
+    "edition": "Breitkopf & Härtel, 1888"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Ph. Raynaud"
+    }
+  ]
+}

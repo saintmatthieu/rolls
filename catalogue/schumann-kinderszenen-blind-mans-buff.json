@@ -1,0 +1,26 @@
+{
+  "title": "Kinderszenen: Blind Man's Buff",
+  "composer": "Robert Schumann",
+  "opus": "Op. 15 No. 3",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 365,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchumannR/O15/SchumannOp15No03/SchumannOp15No03.ly",
+    "edition": "Leichte Stücke, 1900"
+  },
+  "license": {
+    "name": "CC BY 3.0",
+    "url": "https://creativecommons.org/licenses/by/3.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Ying-Chun Liu"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "title": "Impromptu in F minor",
+  "composer": "Franz Schubert",
+  "opus": "D. 935 No. 4",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1689,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchubertF/D935/SchubertF-D935-4-Impromptu/SchubertF-D935-4-Impromptu.ly",
+    "edition": "Breitkopf & Härtel, 1888"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Simon Otten"
+    }
+  ]
+}

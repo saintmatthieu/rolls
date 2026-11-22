@@ -1,0 +1,29 @@
+{
+  "title": "Gymnopédie No. 3",
+  "composer": "Erik Satie",
+  "opus": null,
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 39,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SatieE/gymnopedie_3/gymnopedie_3.ly",
+    "edition": "Dover edition"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Evin Robertson"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=66"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "title": "The Blue Danube (main theme)",
+  "composer": "Johann Strauss II",
+  "opus": "Op. 314",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 519,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/StraussJJ/O314/blue_danube/blue_danube.ly",
+    "edition": "Christian Mondrup, Werner Icking Music Archive"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Nikos Kouremenos"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "title": "Peer Gynt: In the Hall of the Mountain King",
+  "composer": "Edvard Grieg",
+  "opus": "Op. 46 No. 4",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 1888,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/GriegE/O46/Dans_l_antre_du_roi_de_la_montagne/Dans_l_antre_du_roi_de_la_montagne.ly",
+    "edition": "The University Society, 1918"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Coyau"
+    }
+  ]
+}

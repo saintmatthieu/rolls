@@ -1,0 +1,29 @@
+{
+  "title": "Kinderszenen: Träumerei",
+  "composer": "Robert Schumann",
+  "opus": "Op. 15 No. 7",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 504,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/SchumannR/O15/SchumannOp15No07/SchumannOp15No07.ly",
+    "edition": "Leichte Stücke, 1900"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Ying-Chun Liu"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=66"
+  }
+}

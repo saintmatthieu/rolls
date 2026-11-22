@@ -1,0 +1,29 @@
+{
+  "title": "Prelude in C-sharp minor",
+  "composer": "Sergei Rachmaninoff",
+  "opus": "Op. 3 No. 2",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 2033,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/RachmaninoffS/O3/rach-prelude-op3-no2/rach-prelude-op3-no2.ly",
+    "edition": "Bosworth & Co., 1896; Universal Edition, 1910"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Petro Kostandy"
+    }
+  ],
+  "lilyport": {
+    "tempo": "4=62"
+  }
+}

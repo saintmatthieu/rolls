@@ -1,0 +1,26 @@
+{
+  "title": "Waltz in D-flat major “Minute”",
+  "composer": "Frédéric Chopin",
+  "opus": "Op. 64 No. 1",
+  "instrument": "Piano",
+  "tags": [
+    "piano"
+  ],
+  "source": {
+    "kind": "mutopia",
+    "mutopiaId": 483,
+    "commit": "2144afd6f52d56c5b6995b8b589ef1268b3139f0",
+    "path": "ftp/ChopinFF/O64/chopin_valse_op64_no1/chopin_valse_op64_no1-lys/chopin_valse_op64_no1.ly",
+    "edition": "Edition Peters"
+  },
+  "license": {
+    "name": "Public Domain",
+    "url": "https://creativecommons.org/licenses/publicdomain/"
+  },
+  "credits": [
+    {
+      "role": "Engraved for the Mutopia Project by",
+      "name": "Magnus Lewis-Smith"
+    }
+  ]
+}
