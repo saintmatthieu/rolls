@@ -46,6 +46,12 @@ reviewed by hand on a page, and what was kept is written into the catalogue.
    Where a piece has several, put the best first: it is the one Orchestrion
    shows and plays.
 
+## Syncs
+
+Once a recording is in, it can be synced: tapped beat by beat in Orchestrion
+(Advanced ▸ Sync video), then copied into the catalogue by
+`python3 tools/recordings/sync.py` (see *Its sync* in the top-level README).
+
 ## Learnt along the way
 
 - **A set recorded whole**: searched piece by piece, a video of a whole set

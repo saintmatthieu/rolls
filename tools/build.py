@@ -13,6 +13,7 @@ it is. Then check the result, and write
     _site/s/<id>/index.html   its page
     _site/index.json          the catalogue for Orchestrion and the web UI,
                               with the recordings of its pieces
+    _site/sync/<id>/<video>.json  when a recording plays the score's beats
     _site/player.html         the page Orchestrion plays a YouTube video in
     _site/index.html          the library page
     _site/difficulty/         how difficulty is rated (tools/difficulty.py)
@@ -213,6 +214,112 @@ def check_videos(recordings):
             except OSError as error:
                 log(f"warning: {piece}: {entry['url']} not checked ({error})")
     return missing
+
+
+# ---- syncs of recordings ----------------------------------------------------
+#
+# catalogue/sync/<score id>/<video id>.json: when a recording plays each beat
+# of the score, tapped in Orchestrion (Advanced ▸ Sync video), which then
+# follows the video on the score and can play the score at its tempo. It is
+# for one of the score's YouTube recordings, and for the score as it was
+# tapped on (its version): the bars are counted as played, repeats unrolled.
+#
+#   {"version": 2, "score": "<the score's version>",
+#    "points": [[bar, tick in the bar, seconds from the link's t=], ...]}
+#
+# index.json links it from the recording's entry, "sync": "sync/<id>/<video>.json".
+
+SYNCS = ROOT / "catalogue" / "sync"
+SYNC_VERSION = 2
+SCORE_VERSION = re.compile(r"^[0-9a-f]{16}$")
+
+
+def check_sync(data):
+    """The sync as the site gives it, or a BuildError."""
+    if not isinstance(data, dict) or set(data) != {"version", "score", "points"}:
+        raise BuildError('it must be {"version", "score", "points"}')
+    if data["version"] != SYNC_VERSION:
+        raise BuildError(f"version {data['version']!r}, not {SYNC_VERSION}: tap it again "
+                         "in an Orchestrion that writes version 2")
+    if not isinstance(data["score"], str) or not SCORE_VERSION.match(data["score"]):
+        raise BuildError(f"not a score version ({data['score']!r})")
+    points = data["points"]
+    if not isinstance(points, list) or len(points) < 2:
+        raise BuildError("fewer than two points")
+    previous = None
+    for number, point in enumerate(points, 1):
+        if (not isinstance(point, list) or len(point) != 3
+                or not all(isinstance(value, int) and not isinstance(value, bool)
+                           and value >= 0 for value in point[:2])
+                or not isinstance(point[2], (int, float)) or isinstance(point[2], bool)
+                or point[2] < 0):
+            raise BuildError(f"point {number}: it must be [bar, tick, seconds], none negative")
+        if previous and (point[:2] <= previous[:2] or point[2] <= previous[2]):
+            raise BuildError(f"point {number}: not after the one before, in the score "
+                             "or in time")
+        previous = point
+    return {"version": SYNC_VERSION, "score": data["score"],
+            "points": [[bar, tick, round(seconds, 3)] for bar, tick, seconds in points]}
+
+
+def sync_text(sync):
+    """A sync as written in the catalogue and the site: a point a line."""
+    points = ",\n".join("  " + json.dumps(point) for point in sync["points"])
+    return (f'{{"version": {sync["version"]}, "score": {json.dumps(sync["score"])},\n'
+            f' "points": [\n{points}\n]}}\n')
+
+
+def video_of(url):
+    """The video id of a link as canonical_recording_url() writes it; None for
+    a link that isn't YouTube's."""
+    if not url.startswith(YOUTUBE_WATCH):
+        return None
+    return url[len(YOUTUBE_WATCH):].split("&")[0]
+
+
+def load_syncs(records):
+    """The catalogue's syncs, {(score id, video id): sync}, each for a YouTube
+    recording of a record in `records`; a BuildError for any that isn't.
+    Without `records` being the whole catalogue, the others are skipped."""
+    videos = {record["id"]: {video_of(entry["url"]) for entry in record["recordings"]}
+              for record in records}
+    syncs = {}
+    for path in sorted(SYNCS.glob("*/*.json")) if SYNCS.exists() else []:
+        score_id, video = path.parent.name, path.stem
+        name = f"sync/{score_id}/{path.name}"
+        if score_id not in videos:
+            if not (ROOT / "catalogue" / f"{score_id}.json").exists():
+                raise BuildError(f"{name}: no record {score_id}")
+            continue
+        if video not in videos[score_id]:
+            raise BuildError(f"{name}: {video} isn't among {score_id}'s recordings")
+        try:
+            syncs[(score_id, video)] = check_sync(json.loads(path.read_text(encoding="utf-8")))
+        except (ValueError, BuildError) as error:
+            raise BuildError(f"{name}: {error}")
+    return syncs
+
+
+def publish_syncs(out, records, entries, syncs):
+    """Writes the syncs of the scores built into out/sync/, and links them
+    from their recordings in `records`. A sync tapped on another version of
+    the score is published still, with a warning: the app checks that it fits
+    the score's bars, and a score's new version seldom moves them."""
+    versions = {entry["id"]: entry["version"] for entry in entries}
+    for record in records:
+        if record["id"] not in versions:
+            continue
+        for entry in record["recordings"]:
+            sync = syncs.get((record["id"], video_of(entry["url"])))
+            if not sync:
+                continue
+            path = f"sync/{record['id']}/{video_of(entry['url'])}.json"
+            if sync["score"] != versions[record["id"]]:
+                log(f"warning: {path} was tapped on another version of the score "
+                    f"({sync['score']}, now {versions[record['id']]}): check it in the app")
+            (out / path).parent.mkdir(parents=True, exist_ok=True)
+            (out / path).write_text(sync_text(sync), encoding="utf-8")
+            entry["sync"] = path
 
 
 def load_catalogue(only=None):
@@ -1152,10 +1259,12 @@ def convert_score(record, repo, convert_ly, lilyport, out, model, schema, key, u
 def check_recordings_only():
     """--check-recordings: the catalogue's recordings, and YouTube's word on
     their videos, without building anything."""
-    recordings = {record["id"]: record["recordings"] for record in load_catalogue()
+    records = load_catalogue()
+    recordings = {record["id"]: record["recordings"] for record in records
                   if record["recordings"]}
+    syncs = load_syncs(records)
     missing = check_videos(recordings)
-    log(f"recordings of {len(recordings)} pieces checked" +
+    log(f"recordings of {len(recordings)} pieces checked, and {len(syncs)} syncs" +
         (f"; videos missing: {', '.join(missing)}" if missing else ""))
     return 1 if missing else 0
 
@@ -1172,6 +1281,7 @@ def build(args):
     convert_ly = lilypond.with_name("convert-ly")
     log(f"LilyPond: {lilypond}")
     records = load_catalogue(args.only)
+    syncs = load_syncs(records)
     model = json.loads(difficulty.MODEL.read_text(encoding="utf-8"))
 
     out = Path(args.out).resolve()
@@ -1233,6 +1343,7 @@ def build(args):
                 path.unlink()
 
     built = {entry["id"] for entry in entries}
+    publish_syncs(out, records, entries, syncs)
     index = {
         "schemaVersion": SCHEMA_VERSION,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

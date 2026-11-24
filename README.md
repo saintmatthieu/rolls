@@ -144,6 +144,25 @@ python3 tools/build.py --check-recordings
 How the recordings are found and reviewed, and what makes one good enough:
 [tools/recordings/README.md](tools/recordings/README.md).
 
+### Its sync
+
+A YouTube recording can have a **sync**: when it plays each beat of the
+score, so that Orchestrion follows the video on the score and can play the
+score at its tempo. It is tapped in Orchestrion (Advanced ▸ Sync video), which
+saves it in its data folder; then
+
+```sh
+python3 tools/recordings/sync.py            # Orchestrion's syncs on this machine
+python3 tools/recordings/sync.py PATH ...   # or these files or folders
+```
+
+checks each and copies it to `catalogue/sync/<score id>/<video id>.json`. The
+build checks them again, publishes them as `sync/<score id>/<video id>.json`
+and links each from its recording's entry in `index.json`
+(`"sync": "sync/<id>/<video>.json"`). A sync is of a version of the score
+(its bars are counted as played, repeats unrolled): if the score changes, the
+build warns, and the sync is worth checking in the app.
+
 ## Licence
 
 The code is GPL-3.0-or-later. Each score keeps the licence of its source
